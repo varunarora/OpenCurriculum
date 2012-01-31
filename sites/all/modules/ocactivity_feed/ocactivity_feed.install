@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the field_example module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ *
+ */
+function ocactivity_feed_field_schema($field) {
+  $columns = array(
+    'rgb' => array('type' => 'varchar', 'length' => 7, 'not null' => FALSE),
+		'id' => array(
+		  'description' => 'Primary identifier for activity log',
+		  'type' => 'serial',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		),
+		'uid' => array(
+		  'description' => 'User ID in the system',
+		  'type' => 'int',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		  'default' => 0,
+		),
+		'message' => array(
+		  'description' => 'User\'s activity message',
+		  'type' => 'varchar',
+		  'length' => '510',
+		  'not null' => TRUE,
+		  'default' => '',
+		),
+		'type' => array(
+		  'description' => 'Type of activity',
+		  'type' => 'varchar',
+		  'length' => '255',
+		  'not null' => TRUE,
+		  'default' => '',
+		),
+		'created' => array(
+		  'description' => 'UNIX timestamp of when the activity took place',
+		  'type' => 'int',
+		  'not null' => TRUE,
+		  'default' => '0',
+		),
+  );
+  $indexes = array(
+    'rgb' => array('rgb'),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}

@@ -1,0 +1,57 @@
+<?php
+/**
+ * @file
+ * Module file.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function feedback_simple_theme($existing, $type, $theme, $path) {
+  return array(
+    'feedback_simple' => array(
+      'variables' => array(
+        'link' => 'contact',
+        'align' => 'right',
+        'class' => array('feedback_simple'),
+        'top' => '75%',
+        'alt' => t('feedback'),
+        'image' => base_path() . drupal_get_path('module', 'feedback_simple') . '/feedback_simple.gif',
+        'height' => '100px',
+        'width' => '35px',
+        'enabled' => true,
+      ),
+      'template' => 'feedback_simple',
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_feedback_simple().
+ */
+function feedback_simple_preprocess_feedback_simple(&$variables) {
+  // Hide the tab when on the $link page.
+  if (current_path() == $variables['link']) {
+    $variables['enabled'] = false;
+  }
+  // Allow Drupal to apply base_path and locale prefix outside of the
+  // theme registry cache.
+  $variables['link'] = url($variables['link']);
+}
+
+/**
+ * Implements hook_init().
+ */
+function feedback_simple_init() {
+  drupal_add_css(drupal_get_path('module', 'feedback_simple') . '/feedback_simple.css');
+}
+
+/**
+ * Implements hook_footer().
+ */
+function feedback_simple_page_alter(&$page) {
+  $page['page_bottom']['feedback_simple'] = array(
+    '#type' => 'markup',
+    '#markup' => theme('feedback_simple'),
+  );
+}

@@ -1,0 +1,236 @@
+You can format your text using wiki markup. This consists of normal characters like asterisks, single quotes or equation marks which have a special function in the wiki, sometimes depending on their position. For example, to format a word in ''italic'', you include it in two single quotes like <nowiki><code>''this''</code></nowiki>.
+
+== Text formatting markup ==
+
+{| class="wikitable"
+! Description !! You type !! You get
+|-
+! colspan="3" style="background:#ABE" | character (inline) formatting – ''applies anywhere''
+|-
+|Italic text
+| <nowiki><code>''italic''</code></nowiki>.
+|''italic''
+|-
+| Bold text
+| <nowiki><code>'''bold'''</code></nowiki>.
+|'''bold'''
+|-
+| Bold and italic
+| <nowiki><code>'''''bold & italic'''''</code></nowiki>.
+|'''''bold & italic'''''
+|-
+|Escape wiki markup
+| <nowiki><code><nowiki>no ''markup''</nowiki></code></nowiki>
+|<nowiki>no ''markup''</nowiki>
+|-
+! colspan="3" style="background:#ABE" | section formatting – ''only at the beginning of the line''
+|-
+|Headings of different levels 
+| <pre>=level 1=
+==level 2==
+===level 3===
+====level 4====
+=====level 5=====
+======level 6======</pre>
+An article with 4 or more headings automatically creates a [[wikipedia:Wikipedia:Section#Table of contents (TOC)|table of contents]].
+
+|<!-- hack to prevent TOC viewing for h1 - h6 elements: their style is hardcopied here -->
+<div style="font-size: 188%; margin: 0; padding-top: .5em; padding-bottom: .17em; border-bottom: 1px solid #aaa">Level 1</div>
+<div style="font-size: 150%; margin: 0; padding-top: .5em; padding-bottom: .17em; border-bottom: 1px solid #aaa">Level 2</div>
+<div style="font-size: 132%; font-weight: bold">Level 3</div><!--
+--><b>Level 4</b><!--
+--><div style="font-size: 86%; font-weight: bold">Level 5</div><!--
+--><b style="font-size: 80%">Level 6</b>
+|-
+|Horizontal rule
+| <code>----</code>
+|
+----
+|-
+|Bullet list
+|
+<pre>
+* one
+* two
+* three
+** three point one
+** three point two
+</pre>
+Inserting a blank line will end the first list and start another.
+|
+* one
+* two
+* three
+** three point one
+** three point two
+|-
+|Numbered list
+|
+<pre>
+# one
+# two<br />spanning more lines<br />doesn't break numbering
+# three
+## three point one
+## three point two
+</pre>
+|
+# one
+# two<br />spanning more lines<br />doesn't break numbering
+# three
+## three point one
+## three point two
+|-
+|Definition list
+|<pre>
+;item 1
+: definition 1
+;item 2
+: definition 2-1
+: definition 2-2
+</pre>
+|
+;item 1
+: definition 1
+;item 2
+: definition 2-1
+: definition 2-2
+|-
+| Adopting definition list to indent text
+|
+<pre>: Single indent
+:: Double indent
+::::: Multiple indent</pre>
+This workaround may be controversial from the viewpoint of accessibility.
+|
+: Single indent
+:: Double indent
+::::: Multiple indent
+|-
+| Mixture of different types of list
+|
+<pre>
+# one
+# two
+#* two point one
+#* two point two
+# three
+#; three item one
+#: three def one
+# four
+#: four def one
+#: this rather looks like the continuation of # four
+#: and thus often used instead of <br />
+# five
+## five sub 1
+### five sub 1 sub 1
+## five sub 2
+
+;item 1
+:* definition 1-1
+:* definition 1-2
+:
+;item 2
+:# definition 2-1
+:# definition 2-2
+</pre>
+The usage of <code>#:</code> and <code>*:</code> for breaking a line within an item may also be controversial.
+|
+# one
+# two
+#* two point one
+#* two point two
+# three
+#; three item one
+#: three def one
+# four
+#: four def one
+#: this rather looks like the continuation of <code># four</code>
+#: often used instead of <code><br /></code>
+# five
+## five sub 1
+### five sub 1 sub 1
+## five sub 2
+;item 1
+:* definition 1-1
+:* definition 1-2
+:
+;item 2
+:# definition 2-1
+:# definition 2-2
+|-
+|-
+|Preformatted text
+|
+<pre>
+ preformatted text is done with
+ a '''space''' at the 
+ ''beginning'' of the line
+</pre>
+This way of preformatting only applies to section formatting, and character formatting markups are still effective.
+|
+ preformatted text is done with
+ a '''space''' at the 
+ ''beginning'' of the line
+|}
+
+== Paragraphs ==
+MediaWiki ignores single line breaks. To start a new paragraph, leave an empty line. You can force a line break within a paragraph with the HTML tags <code><br /></code>.
+
+== HTML ==
+Some [[wikipedia:HTML|HTML]] tags are allowed in MediaWiki, for example <code><code></code>, <code><div></code>, <nowiki><code><span></code></nowiki> and <nowiki><code><font></code></nowiki>. These apply anywhere you insert them.
+
+{| class="wikitable"
+!Description
+!You type
+!You get
+|-
+| Underscore
+| <code><u>underscore</u></code>
+|<u>underscore</u>
+|-
+| Strikethrough
+| <code><del>Strikethrough</del></code> or <code><s>Strikethrough</s></code>
+|<del>Strikethrough</del>
+|- style="white-space:nowrap"
+|Fixed width text
+| <code><tt>Fixed width text</tt></code> or <code><code>source code</code></code>
+| <tt>Fixed width text</tt> or <code>source code</code>
+|-
+|Blockquotes
+| <code>
+text text text text text text text text text text text text
+text text text text text text text text text text text text
+<blockquote>  quote quote quote quote quote quote </blockquote>
+text text text text text text text text text text text text
+</code>
+| text text text text text text text text text text text text text text text text text text text text text text text text <blockquote>  quote quote quote quote quote quote </blockquote> text text text text text text text text text text text text
+|-
+|Comment
+| <code><!-- This is a comment --></code>
+Text can only be viewed in the edit window.
+|
+<!-- This is a real invisible comment -->
+|-
+|Completely preformatted text
+|
+<code><pre>this way, all markups are '''ignored'''</pre></code>
+|
+<pre> this way, all markups are '''ignored'''.</pre>
+|-
+|'''Customized''' preformatted text
+|
+<code><pre style="CSS text">this way, all markups are '''ignored''' and formatted with a CSS text</pre></code>
+|
+<pre style="white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;overflow:auto;">
+ this way for instance, all '''ignored''' markups take into account the navigator size, by automatically adding some carriage returns dynamically to it.</pre>
+|}
+
+== Other formatting ==
+Beyond the text formatting markup shown above, here are some other formatting references:
+
+*[[Help:Links|Links]]
+* [[Help:Images|Images]]
+* [[Help:Tables|Tables]]
+
+
+[[Category:Help|Formatting]]

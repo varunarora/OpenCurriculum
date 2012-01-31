@@ -1,0 +1,9 @@
+;$Id$
+
+name = Activity feed for users
+description = A custom Open Curriculum module to show user activity
+package = Open Curriculum Custom
+version = 7.x-1.0-alpha
+core = 7.x
+
+files[] = activity_feed.install

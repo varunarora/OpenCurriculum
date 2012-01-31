@@ -1,0 +1,73 @@
+# Hungarian translation of talk (6.x-1.5)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  talk.module,v 1.6.2.1 2008/09/17 16:07:35 heine
+#  talk.info,v 1.2 2007/12/31 01:13:44 cwgordon7
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: talk (6.x-1.5)\n"
+"POT-Creation-Date: 2009-06-25 18:01+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: Balogh Zoltán\n"
+"Language-Team: Hungarian http://forditas.mindworks.hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: talk.module:118,207
+msgid "Add new comment"
+msgstr "Új hozzászólás"
+
+#: talk.module:15
+msgid ""
+"The talk module gives you the option to display comments on a seperate "
+"tab. The option is per content type and can be set in the workflow "
+"options of a content type."
+msgstr ""
+"A <em>Talk</em> modul lehetőséget ad arra, hogy a hozzászólások "
+"egy elkülönített csevegő oldalon jelenjenek meg. Ez a lehetőség "
+"tartalomtípusonként elérhető és a tartalomtípus „Általános "
+"beállítások” részében lehet beállítani."
+
+#: talk.module:35
+msgid "Talk page"
+msgstr "Csevegő oldal"
+
+#: talk.module:36
+msgid "Configure settings for the talk page."
+msgstr "A csevegő oldal beállítása."
+
+#: talk.module:58
+msgid "Title of the \"talk\" page"
+msgstr "A csevegő oldal címe"
+
+#: talk.module:66; talk.info:0
+msgid "Talk"
+msgstr "Csevegés"
+
+#: talk.module:112
+msgid "@title page (@nr comments)"
+msgstr "@title oldal (@nr hozzászólás)"
+
+#: talk.module:134
+msgid "Display comments on separate talk page"
+msgstr ""
+"A hozzászólásokat egy elkülönített csevegő oldalon jelenítse "
+"meg"
+
+#: talk.module:135
+msgid "Talk pages:"
+msgstr "Csevegő oldalak:"
+
+#: talk.module:0
+msgid "talk"
+msgstr "talk"
+
+#: talk.info:0
+msgid "Display comments on a seperate talk page"
+msgstr ""
+"A hozzászólásokat egy elkülönített csevegő oldalon jelenítse "
+"meg"
+

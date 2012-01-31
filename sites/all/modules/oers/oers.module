@@ -1,0 +1,620 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * The purpose of this module is to allow users to view OERs and contribute
+ * their own set of OERs
+ *
+ */
+
+/*
+ * Implements hook_menu()
+ */
+function oers_menu() {
+
+	$items = array();
+
+	$items['node/%node/resources'] = array(
+	  'title' => 'Resources', 
+	  'description' => 'Listing of all the OERs for a particular', 
+	  'type' => MENU_LOCAL_TASK, 
+	  'page callback' => 'oers_listing', 
+	  'page arguments' => array(1), 
+	  'access arguments' => array(1), 
+	  'access callback' => 'oers_access', 
+	);
+	
+	$items['node/%node/drafts'] = array(
+	  'title' => 'Drafts', 
+	  'description' => 'Listing all the drafts of a chater', 
+	  'type' => MENU_SUGGESTED_ITEM,
+	  'page callback' => 'oers_node_history_view', 
+	  'page arguments' => array(1), 
+	  'access arguments' => array(1), 
+	  'access callback' => 'oers_access', 
+	);
+	
+	$items['node/%node/revisions'] = array(
+	  'title' => 'Revisions', 
+	  'description' => 'Listing all the drafts of a chater', 
+	  'type' => MENU_LOCAL_TASK,
+	  'page callback' => 'oers_diffs_overview', 
+	  'page arguments' => array(1), 
+	  'access arguments' => array(1), 
+	  'access callback' => 'oers_access', 
+	);
+
+	$items['oers/login'] = array(
+          'title' => 'Login', 
+          'description' => 'Listing of all the OERs for a particular', 
+          'type' => MENU_LOCAL_ACTION,
+          'page callback' => 'oers_login_request', 
+          'page arguments' => array(1),
+          'access callback' => 'oers_thankyou_access',
+        );
+
+	return $items;
+
+}
+
+/*
+ * Implements hook_access()
+ */
+function oers_access($node) {
+	return $node->type=='book' && user_access('access content'); 
+}
+
+/*
+ * Implements hook_access()
+ */
+function oers_thankyou_access() {
+	return true; 
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function oers_menu_alter(&$items) {
+	  // Override the node view menu item title.
+  $items['node/%node/view']['title callback'] = 'oers_view_tab_title';
+  $items['node/%node/view']['title arguments'] = array(1);
+
+  // Redirect node/%node/revisions
+  $items['node/%node/revisions']['page callback'] = 'oers_diffs_overview';
+  $items['node/%node/revisions']['page arguments'] = array(1);
+  $items['node/%node/revisions']['access arguments'] = array(1);
+  $items['node/%node/revisions']['access callback'] = 'oers_access';
+
+}
+
+/**
+ * Change the name of the node view tab, conditionally.
+ *
+ * - Don't change the title if the content is not under moderation.
+ *
+ * - If a piece of content has a published revision, the "View" tab should be
+ *   titled "View published".
+ *
+ * - Otherwise, it should be titled "View draft".
+ *
+ * @param $node
+ *   The node being acted upon.
+ *
+ * @return
+ *   The title for the tab.
+ */
+function oers_view_tab_title($node) {
+  // Use the normal tab title if the node type is not under moderation.
+  if (!workbench_moderation_node_type_moderated($node->type)) {
+    return t('View');
+  }
+
+  // Is there a published revision?
+  $state = $node->workbench_moderation;
+  if (!empty($state['published'])) {
+    return t('Stable');
+  }
+  return t('View draft');
+}
+
+
+function oers_listing($node) {
+	$result = db_select('field_data_field_bookpage', 'f') -> fields('f', array('entity_id')) -> condition('field_bookpage_nid', $node -> nid) -> execute();
+
+	$oer_list = array();
+
+	foreach($result as $oer) {
+		$oer_list[] = $oer -> entity_id;
+
+	}
+
+	$entities = entity_load('node', $oer_list);
+
+	$resources = array();
+
+	foreach($entities as $entity) {
+
+		$resource_user = user_load($entity -> uid);
+
+		$comments_list = comment_get_thread($entity, COMMENT_MODE_THREADED, 5);
+		$comments = comment_view_multiple(comment_load_multiple($comments_list), $entity);
+
+		$comment_view = drupal_render($comments);
+
+		$website = NULL;
+		$language = $entity->language;
+		
+		$license = NULL;
+		$date = date('dS M, Y', $entity->created);
+				
+		if (isset($entity->field_license[$language][0]['tid'])){
+			$license_obj = taxonomy_term_load($entity->field_license[$language][0]['tid'])->field_image['und'][0];
+			$license = image_style_url('thumbnail', $license_obj['uri']);
+		} 
+		
+		if(isset($entity -> field_website[$language][0]['url']))
+			$website = $entity -> field_website[$language][0]['url'];
+		$resources[] = array('id' => $entity -> nid, 'date' => $date, 'title' => $entity -> title, 'body' => $entity->body[$language][0]['safe_value'], 'website' => $website, 'license' => $license, 'comments' => $comment_view, 'user' => array('uid' => $resource_user -> uid, 'name' => $resource_user -> name));
+
+	}
+
+	$variables = array('items' => $resources, 'node' => $node);
+	$output = theme('oers_list', $variables);
+
+	return $output;
+
+}
+
+/*
+ * Implements hook_form_FORM_ID_alter()
+ */
+function oers_form_oer_node_form_alter(&$form, &$form_state, $form_id) {
+	global $user;
+	if (isset($_GET['bookpage'])){
+		$form['field_bookpage']['und']['#default_value'] = $_GET['bookpage'];
+		if (!array_search('administrator', $user->roles)){
+			$form['field_bookpage']['#disabled'] = TRUE;
+		}
+	}
+}
+
+/*
+ * Implements hook_form_FORM_ID_alter()
+ */
+function oers_form_resource_node_form_alter(&$form, &$form_state, $form_id) {
+	global $user;
+	if (isset($_GET['bookpage'])){
+		$form['field_bookpage']['und']['#default_value'] = $_GET['bookpage'];
+		if (!array_search('administrator', $user->roles)){
+			$form['field_bookpage']['#disabled'] = TRUE;
+		}
+	}
+}
+
+/*
+ * Implements hook_theme()
+ */
+function oers_theme($existing, $type, $theme, $path) {
+  return array(
+    'oers_list' => array(
+      'variables' => array(
+        'items' => NULL,
+      ), 
+    'template' => 'oers', 
+    ),
+    'nothankyou' => array(
+      'variables' => array(
+        'items' => NULL,
+      ), 
+    'template' => 'nothankyou', 
+    ),
+    'oers_node_revisions' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+function theme_oers_list($variables){
+	drupal_add_css(drupal_get_path('module', 'oers').'/oers.css');
+	return $variables;
+}
+
+function template_preprocess_oers_list(&$variables){
+	drupal_add_css(drupal_get_path('module', 'oers').'/oers.css');
+	drupal_add_js(drupal_get_path('module', 'oers').'/oers.js');
+}
+
+
+
+/*
+ * Implements hook_form_FORM_ID_alter()
+ */
+function oers_form_book_node_form_alter(&$form, &$form_state, $form_id) {	
+  $form['actions']['submit']['#submit'][] = 'oers_book_node_form_submit';
+}
+
+function oers_book_node_form_submit(&$form, &$form_state) {
+  global $user;
+  if (!$user->uid==0) $form_state['redirect'] = array('node/' . $form_state['node'] -> nid . '/talk');
+  else $form_state['redirect'] = array('oers/login', array('query' => array('destination' => 'node/' . $form_state['node'] -> nid . '/current-revision')));
+}
+
+function oers_login_request($node){
+  drupal_set_title("Changes submitted");
+  $message = 'Congratulations, your changes have been submitted. We really love you, so please consider creating an account so you can gain points also';
+  $variables = array('items' => $message, 'node' => $node);
+  $output = theme('nothankyou', $variables);
+  return $output;
+}
+
+/*
+ * Implements hook_views_api()
+ */
+function oers_views_api(){
+  return array(
+    'api' => '2.0',
+    'path' => drupal_get_path('module', 'oers') . '/inc',
+  );
+}
+
+/**
+ * Display a node's moderation history.
+ *
+ * @param $node
+ *   The node being acted upon.
+ *
+ * @return
+ *   A themed table of data and links for node moderation actions.
+ */
+function oers_node_history_view($node) {
+  global $user;
+
+  // Page title.
+  drupal_set_title(t('@title History', array('@title' => $node->title)), PASS_THROUGH);
+
+  // Alert if there is no live node
+  if (!isset($node->workbench_moderation['published'])) {
+    drupal_set_message(t('Currently there is no published revision of this node.'), 'warning');
+  }
+
+  // Get all of the node revisions, each with its most recent moderation.
+  $query = db_select('node', 'n');
+  $query->leftJoin('node_revision', 'r', 'n.nid = r.nid');
+  $query->leftJoin('users', 'u', 'r.uid = u.uid');
+  $query->addField('n', 'vid', 'live_revision');
+  $query->condition('n.nid', $node->nid)
+    ->orderBy('r.vid', 'DESC')
+    ->fields('r', array('nid', 'vid', 'title', 'log', 'uid', 'timestamp'))
+    ->fields('u', array('name'));
+
+  $revisions = $query->execute()
+    ->fetchAllAssoc('vid');
+
+  // Build the table rows.
+  $rows = array();
+  foreach ($revisions as $revision) {
+    $row = array(
+      'data' => array(
+        'vid' => '',
+        'info' => '',
+        'date' => '',
+        'revision' => '',
+        'moderation' => '',
+        'points' => '',
+      ),
+      'class' => array('revision'),
+    );
+
+    // Add row classes.
+    if ($revision->vid == $node->workbench_moderation['current']->vid) {
+      $row['class'][] = 'current-revision';
+    }
+    if (isset($node->workbench_moderation['published']) && $revision->vid == $node->workbench_moderation['published']->vid) {
+      $row['class'][] = 'published-revision';
+    }
+    else {
+      $row['class'][] = 'unpublished-revision';
+    }
+
+    // Add row data.
+    $row['data']['vid'] = $revision->vid;
+    $row['data']['info'] .= '<div class="revision-title">' . check_plain($revision->title) . '</div>';
+    $row['data']['info'] .= '<div class="revision-log description">' . filter_xss($revision->log) . '</div>';
+    $row['data']['info'] .= '<div class="revision-user description">' . t('Revised by !user', array('!user' => theme('username', array('account' => $revision)))) . '</div>';
+    $row['data']['date'] = l(format_date($revision->timestamp, 'short'), "node/{$node->nid}/moderation/{$revision->vid}/view");
+
+    // Revision operations.
+    $revision_operations = array();
+    if (isset($node->workbench_moderation['published']) && $revision->vid == $node->workbench_moderation['published']->vid) {
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}");
+    }
+    elseif ($revision->vid == $node->workbench_moderation['current']->vid) {
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}/current-revision");
+    }
+    else {
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}/revisions/{$revision->vid}/view");
+    }
+
+    $revision_operations['revert'] = workbench_moderation_access_link(t('revert'), "node/{$revision->nid}/revisions/{$revision->vid}/revert");
+    $revision_operations['delete'] = workbench_moderation_access_link(t('delete'), "node/{$revision->nid}/revisions/{$revision->vid}/delete");
+
+    $row['data']['revision'] = implode(' | ', array_filter($revision_operations));
+
+
+    $rows[] = $row;
+  }
+
+  // Set the table header.
+  $header = array(t('Revision'), t('Title'), t('Date'), t('Revision Actions'));
+
+  // Return properly styled output.
+  return array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'workbench_moderation') . '/css/workbench_moderation.css',
+      ),
+    ),
+    '#markup' => theme('table', array('header' => $header, 'rows' => $rows)),
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function oers_diffs_overview($node) {
+  drupal_set_title(t('Revisions for @title', array('@title' => $node->title)));
+  return drupal_get_form('oers_node_revisions', $node);
+}
+
+function oers_node_revisions($form, $form_state, $node) {
+
+  global $user;
+  global $form_values;
+
+  //dsm($user);
+  
+  // Page title.
+  drupal_set_title(t('@title History', array('@title' => $node->title)), PASS_THROUGH);
+
+  // Alert if there is no live node
+  if (!isset($node->workbench_moderation['published'])) {
+    drupal_set_message(t('Currently there is no published revision of this node.'), 'warning');
+  }
+
+  // Get all of the node revisions, each with its most recent moderation.
+  $query = db_select('node', 'n');
+  $query->leftJoin('node_revision', 'r', 'n.nid = r.nid');
+  $query->leftJoin('users', 'u', 'r.uid = u.uid');
+  $query->addField('n', 'vid', 'live_revision');
+  $query->condition('n.nid', $node->nid)
+    ->orderBy('r.vid', 'DESC')
+    ->fields('r', array('nid', 'vid', 'title', 'log', 'uid', 'timestamp'))
+    ->fields('u', array('name'));
+
+  $revisions = $query->execute()
+    ->fetchAllAssoc('vid');
+
+  foreach ($revisions as $revision) {
+  	$revision_ids[$revision->vid] = ''; 
+	 
+    $form['nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $node->nid,
+    );
+	 	
+    $form['revid'][$revision->vid] = array(
+      '#markup' => $revision->vid,
+    );
+
+    $form['info'][$revision->vid] = array(
+      '#markup' => t('<div class="revision-title">' . check_plain($revision->title) . '</div>' .
+	  '<div class="revision-log description">' . filter_xss($revision->log) . '</div>' . 
+	  '<div class="revision-user description">' . t('Revised by !user', array('!user' => theme('username', array('account' => $revision)))) . '</div>')
+    );
+
+    $form['date'][$revision->vid] = array(
+      '#markup' => l(format_date($revision->timestamp, 'short'), "node/{$node->nid}/moderation/{$revision->vid}/view")
+    );
+	
+	// Revision operations.
+    $revision_operations = array();
+    if (isset($node->workbench_moderation['published']) && $revision->vid == $node->workbench_moderation['published']->vid) {
+      $form['revision'][$revision->vid] = array(
+        '#value' => 'published',
+	  );	
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}");
+	}
+    elseif ($revision->vid == $node->workbench_moderation['current']->vid) {
+      $form['revision'][$revision->vid] = array(
+        '#value' => 'current',
+	  );
+      //$revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}/current-revision");
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}/revisions/{$revision->vid}/view");
+    }
+    else {
+      $form['revision'][$revision->vid] = array(
+        '#value' => 'unpublished',
+	  );
+      $revision_operations['view'] = workbench_moderation_access_link(t('view'), "node/{$revision->nid}/revisions/{$revision->vid}/view");
+    }
+
+    $revision_operations['revert'] = workbench_moderation_access_link(t('revert'), "node/{$revision->nid}/revisions/{$revision->vid}/revert");
+    $revision_operations['delete'] = workbench_moderation_access_link(t('delete'), "node/{$revision->nid}/revisions/{$revision->vid}/delete");
+
+    $form['operations'][$revision->vid] = array(
+      '#markup' => implode(' &#183; ', array_filter($revision_operations))
+	);
+
+	 
+	$form['submit'] = array('#type' => 'submit', '#value' => t('Show diff')); 
+	 
+	
+	 
+  }
+
+  $new_vid = key($revision_ids);
+  next($revision_ids);
+  $old_vid = key($revision_ids);
+
+	
+  $form['diff']['old'] = array(
+    '#type' => 'radios',
+    '#options' => $revision_ids,
+    '#default_value' => $old_vid
+  );
+  
+  $form['diff']['new'] = array(
+    '#type' => 'radios',
+    '#options' => $revision_ids,
+    '#default_value' => $new_vid
+  );
+	  
+
+
+
+/*
+
+ * RIGHT PIECE OF CODE FOR GETTING REVISIONS AND SETTING PAGINATION
+ * 
+  $revision_list = node_revision_list($node);
+
+  if (count($revision_list) > REVISION_LIST_SIZE) {
+    // If the list of revisions is longer than the number shown on one page split the array.
+    $page = isset($_GET['page']) ? $_GET['page'] : '0';
+    $revision_chunks = array_chunk(node_revision_list($node), REVISION_LIST_SIZE);
+    $revisions = $revision_chunks[$page];
+    // Set up global pager variables as would 'pager_query' do.
+    // These variables are then used in the theme('pager') call later.
+    global $pager_page_array, $pager_total, $pager_total_items;
+    $pager_total_items[0] = count($revision_list);
+    $pager_total[0] = ceil(count($revision_list) / REVISION_LIST_SIZE);
+    $pager_page_array[0] = max(0, min($page, ((int)$pager_total[0]) - 1));
+  }
+  else {
+    $revisions = $revision_list;
+  }
+
+ * END RIGHT PIECE OF CODE
+ * 
+  $revert_permission = FALSE;
+  if ((user_access('revert revisions') || user_access('administer nodes')) && node_access('update', $node)) {
+    $revert_permission = TRUE;
+  }
+  $delete_permission = FALSE;
+  if ((user_access('delete revisions') || user_access('administer nodes')) && node_access('delete', $node)) {
+    $delete_permission = TRUE;
+  }
+
+  foreach ($revisions as $revision) {
+    $operations = array();
+    $revision_ids[$revision->vid] = '';
+
+    if ($revision->current_vid > 0) {
+      $form['info'][$revision->vid] = array(
+        '#markup' => t('!date by !username', array(
+          '!date' => l(format_date($revision->timestamp, 'small'), "node/$node->nid"),
+          '!username' => theme('username', array('name' => $revision))))
+        . (($revision->log != '') ? '<p class="revision-log">'. filter_xss($revision->log) .'</p>' : ''),
+      );
+    }
+    else {
+      $form['info'][$revision->vid] = array(
+        '#markup' => t('!date by !username', array(
+          '!date' => l(format_date($revision->timestamp, 'small'), "node/$node->nid/revisions/$revision->vid/view"),
+          '!username' => theme('username', array('name' => $revision))))
+        . (($revision->log != '') ? '<p class="revision-log">'. filter_xss($revision->log) .'</p>' : '')
+      );
+      if ($revert_permission) {
+        $operations[] = array('#markup' => l(t('revert'), "node/$node->nid/revisions/$revision->vid/revert"));
+      }
+      if ($delete_permission) {
+        $operations[] = array('#markup' => l(t('delete'), "node/$node->nid/revisions/$revision->vid/delete"));
+      }
+      // Set a dummy, even if the user has no permission for the other
+      // operations, so that we can check if the operations array is
+      // empty to know if the row denotes the current revision.
+      $operations[] = array();
+    }
+    $form['operations'][$revision->vid] = $operations;
+
+  }
+
+*/
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'workbench_moderation') . '/css/workbench_moderation.css',
+  );
+
+  return $form;
+}
+
+function theme_oers_node_revisions($variables) {
+  $form = $variables['form'];
+  $output = '';
+
+  // Overview table:
+  $header = array(
+    t('Revision'),
+    t('Title'), t('Date'),
+    array('data' => drupal_render($form['submit']), 'colspan' => 2),
+    array('data' => t('Operations'), 'colspan' => 2)
+  );
+  
+  if (isset($form['info']) && is_array($form['info'])) {
+    foreach (element_children($form['info']) as $key) {
+      $row = array();
+      //if (isset($form['operations'][$key][0])) {
+        // Note: even if the commands for revert and delete are not permitted,
+        // the array is not empty since we set a dummy in this case.
+        $row[] = drupal_render($form['revid'][$key]);
+        $row[] = drupal_render($form['info'][$key]);
+		$row[] = drupal_render($form['date'][$key]);
+        $row[] = drupal_render($form['diff']['old'][$key]);
+        $row[] = drupal_render($form['diff']['new'][$key]);
+        $row[] = drupal_render($form['operations'][$key]);
+		
+		$classes = array();
+		
+        if ($form['revision'][$key]['#value'] == "current"){
+        	 //$classes[] = 'current-revision';
+        	 $classes[] = 'unpublished-revision'; 
+		}
+		else if ($form['revision'][$key]['#value'] == "published"){
+        	 $classes[] = 'published-revision'; 
+		}
+		else if ($form['revision'][$key]['#value'] == "unpublished"){
+        	 $classes[] = 'unpublished-revision'; 
+		}
+				
+		$rows[] = array(
+          	  'data' => $row,
+              'class' => array(''.implode (' ', $classes)),
+        );	
+		
+    }
+  }
+  $output .= theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= drupal_render_children($form);
+  return $output;
+}
+
+/**
+ * Submit code for input form to select two revisions.
+ */
+function oers_node_revisions_submit($form, &$form_state) {
+  // the ids are ordered so the old revision is always on the left
+  $old_vid = min($form_state['values']['old'], $form_state['values']['new']);
+  $new_vid = max($form_state['values']['old'], $form_state['values']['new']);
+  $form_state['redirect'] =  'node/'. $form_state['values']['nid'] .'/revisions/view/'. $old_vid .'/'. $new_vid;
+}
+

@@ -1,0 +1,24 @@
+name = Filepicker
+description = "Upload, browse and add links to files to your nodes."
+package = Media
+core = 7.x
+
+files[] = filepicker.install
+files[] = filepicker.module
+files[] = filepicker.admin.inc
+files[] = filepicker.edit.inc
+files[] = filepicker.form-elements.inc
+files[] = filepicker.group.inc
+files[] = filepicker.import.inc
+files[] = filepicker.theme.inc
+files[] = filepicker.upload.inc
+files[] = filepicker.user.inc
+
+configure = admin/config/media/filepicker
+
+; Information added by drupal.org packaging script on 2011-06-30
+version = "7.x-1.4"
+core = "7.x"
+project = "filepicker"
+datestamp = "1309431416"
+

@@ -1,0 +1,9 @@
+;$Id$
+
+name = Ratings for OC
+description = A custom Open Curriculum module to manage user and OER rating system
+package = Open Curriculum Custom
+core = 7.x
+
+files[] = ratingx.module
+

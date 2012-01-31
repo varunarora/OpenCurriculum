@@ -1,0 +1,229 @@
+<?php
+// $Id: mediawiki_filter.module 3782 2010-10-21 11:16:23Z bherlig $
+
+/**
+ * @file
+ * Implements a dummy environment for the Mediawiki parser and implements
+ * a Drupal filter which then can use the parser.
+ */
+
+require_once('mediawiki_filter.settings.inc');
+
+/**
+ * Implementation of hook_init().
+ */
+function mediawiki_filter_init() {
+  drupal_add_css(drupal_get_path('module', 'mediawiki_filter') .'/mediawiki_filter.css');
+
+  // TODO: make external image an option
+  $external_img_url = base_path() . drupal_get_path('module', 'mediawiki_filter') .'/external.png';
+  drupal_add_js(drupal_get_path('module', 'mediawiki_filter') .'/mediawiki_filter.js');
+  drupal_add_js(
+    'if (Drupal.jsEnabled) {
+      $(document).ready(function() {
+        $(\'a.external\').each(function() {
+          $(this).append(\'&nbsp;<img src="'. $external_img_url .'" alt="external"/>\');
+        });
+      });
+    }',
+    'inline', 'footer');
+}
+
+function mediawiki_filter_filter_info() {
+	$filters['filter_html'] = array(
+		'title' => t('Mediawiki Filter'),
+		'description' => t('Filter which uses the Mediawiki parser.'),
+		'process callback' => '_mediawiki_filter_process',
+		'settings callback' => '_mediawiki_filter_filter_settings',
+		'tips callback' => '_mediawiki_filter_filter_tips',
+		'cache' => FALSE,
+	);
+	
+	return $filters;
+}
+
+/**
+ * Parse 'text' and apply the wiki-formatting.
+ */
+function _mediawiki_filter_process($text, $filter, $format) {
+  require_once('mediawiki_filter.lib.inc');
+
+  return _mediawiki_filter_parse($text);
+}
+
+function _mediawiki_filter_filter_tips($filter, $format, $long = FALSE) {
+  $output = '';
+  if ($long) {
+    $output .= '<p>'. t('You can use <a href="http://en.wikipedia.org/wiki/Wikipedia:How_to_edit_a_page#Wiki_markup">Mediawiki formatting</a>.') .'</p>';
+    $output .= '<p>'. mediawiki_filter_interwiki_help_tip($format, $long) .'</p>';
+  }
+  else {
+    $output .= t('You can use <a href="http://en.wikipedia.org/wiki/Wikipedia:How_to_edit_a_page#Wiki_markup">Mediawiki formatting</a>.');
+    $output .= ' '. mediawiki_filter_interwiki_help_tip($format, $long);
+  }
+  return $output;
+}
+
+
+function mediawiki_filter_node_insert($node){
+	cache_clear_all($node->format .':', 'cache_filter', TRUE);
+}
+
+function mediawiki_filter_node_update($node){
+	cache_clear_all($node->format .':', 'cache_filter', TRUE);
+}
+
+
+/*
+ * Settings
+ */
+
+/**
+ * TODO
+ */
+function mediawiki_filter_namespace_mapping() {
+  return array(
+    NS_MAIN => mediawiki_filter_namespace_main_node_types(),  // 0
+    NS_USER => array('user'),  // 2
+    NS_PROJECT => array(), // 4
+    NS_IMAGE => array(mediawiki_filter_namespace_image_node_type()),  // 6
+    NS_MEDIAWIKI => array(), // 8
+    NS_TEMPLATE => array(mediawiki_filter_namespace_template_node_type()),  // 10
+    NS_HELP => array(),  // 12
+    NS_CATEGORY => array(), // 14
+  );
+}
+
+/**
+ * TODO
+ */
+function mediwiki_filter_is_talk_namespace($namespace) {
+  if (is_numeric($namespace)) {
+    return intval($namespace) % 2 == 0;
+  }
+  return substr($namespace, -4) == 'talk';
+}
+
+/**
+ * TODO
+ */
+function mediawiki_filter_node_types_for_namespace($namespace) {
+  if (is_numeric($namespace)) {
+    $mapping = mediawiki_filter_namespace_mapping();
+    $result = array();
+    foreach ($mapping[intval($namespace)] as $type => $enabled) {
+      if ($enabled)
+        $result[] = $type;
+    }
+    return $result;
+  }
+  else {
+    // TODO: name mapping
+  }
+  return 'wiki';
+}
+
+/**
+ * Thumbnail size.
+ */
+function mediawiki_filter_thumbnail_size($upright = FALSE) {
+  return $upright ? 130 : 180;
+}
+
+/*
+ * Operations
+ */
+
+function mediawiki_filter_url_for_existing_page(&$nt, $title, $namespace_id, $query = NULL) {
+  $url = NULL;
+  switch (mediawiki_filter_wikilink_existing_handler()) {
+    case 'wikitools':
+      break;
+    case 'freelinking':
+      break;
+    case 'liquid':
+      break;
+    case 'path':
+      $path = mediawiki_filter_wikilink_fixed_path_for_existing();
+      $url = url(str_replace('$1', $title, $path));
+      break;
+    case 'direct':
+      $url = url("node/$nt->nid");
+      break;
+  }
+  return $url;
+}
+
+/**
+ * TODO: docu
+ * TODO: check what $query could be and if we need it
+ */
+function mediawiki_filter_url_for_nonexisting_page(&$nt, $title, $namespace_id, $query = NULL) {
+  // Get the node type
+  if ($namespace_id == NS_IMAGE) {
+    $type = mediawiki_filter_namespace_image_node_type();
+  }
+  elseif ($namespace_id == NS_TEMPLATE) {
+    $type = mediawiki_filter_namespace_template_node_type();
+  }
+  else {
+    $type = mediawiki_filter_nonexisting_link_node_type();
+  }
+  $url = NULL;
+  if ($type != NULL) {
+    switch (mediawiki_filter_wikilink_nonexisting_handler()) {
+      case 'wikitools':
+        break;
+      case 'freelinking':
+        break;
+      case 'liquid':
+        break;
+      case 'path':
+        $path = mediawiki_filter_wikilink_fixed_path_for_nonexisting();
+        $url = url(str_replace('$type', $type, $path));
+        $url = url(str_replace('$1', $title, $url));
+        break;
+      case 'create-link':
+        $attr = 'edit[title]='. urlencode($title);
+        $url = url('node/add/'. $type, array('query' => $attr));
+        break;
+    }
+  }
+  return $url;
+}
+
+
+function mediawiki_filter_get_interwiki_url($key) {
+  $interwiki_links = mediawiki_filter_interwiki_mappings();
+  if (isset($interwiki_links[$key])) {
+    $url = str_replace('$1', '__QUERY_POSITION_REPLACEMENT__', $interwiki_links[$key]);
+    $url = url($url, array('absolute' => TRUE));
+    $url = str_replace('__QUERY_POSITION_REPLACEMENT__', '$1', $url);
+    return $url;
+  }
+  return NULL;
+}
+
+/**
+ * Helper function to create interwiki link part of filter tips.
+ */
+function mediawiki_filter_interwiki_help_tip($format, $long = FALSE) {
+  $output = '';
+  $mappings = mediawiki_filter_interwiki_mappings('array');
+  if (count($mappings)) {
+    if ($long) {
+      $output .= '<p>'. t('You can use the following interwiki links:') .'</p>';
+      $output .= '<ul>';
+      foreach ($mappings as $key => $info) {
+        $output .= '<li>'. $key .': '. $info['title'] . t(' - mapped to %url', array('%url' => $info['url'])) .'</li>';
+      }
+      $output .= '</ul>';
+    }
+    else {
+      $output .= t('Available interwiki link targets: ');
+      $output .= implode(', ', array_keys($mappings));
+    }
+  }
+  return $output;
+}
+

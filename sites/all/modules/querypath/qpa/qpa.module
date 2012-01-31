@@ -1,0 +1,16 @@
+<?php
+// $Id: qpa.module,v 1.2.2.1 2010/07/13 03:45:14 ebrand Exp $
+
+/**
+ * The main file for qpa.
+ * @file
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function qpa_help($path, $args) {
+  if ($path == 'admin/help#qpa') {
+    return t('QueryPath Array utilities, inclding the qpa() function.');
+  }
+}

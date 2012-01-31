@@ -1,0 +1,14 @@
+; $Id: talk.info,v 1.2 2007/12/31 01:13:44 cwgordon7 Exp $
+
+name = Talk
+description = Display comments on a seperate talk page
+core = "7.x"
+
+dependencies[] = comment
+
+; Information added by drupal.org packaging script on 2009-08-24
+version = 7.0.x.0
+core = "7.x"
+project = "talk"
+datestamp = "1251124051"
+

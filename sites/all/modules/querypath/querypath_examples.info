@@ -1,0 +1,17 @@
+;$Id: querypath_examples.info,v 1.2.2.2 2010/07/12 03:56:58 ebrand Exp $
+
+name = QueryPath Examples
+package = QueryPath
+description = View and run some examples of QueryPath.
+core = 7.x
+php = 5.2
+requires[] = querypath
+files[] = querypath_examples.info
+files[] = querypath_examples.module
+configure = admin/config/qp/examples
+; Information added by drupal.org packaging script on 2011-01-13
+version = "7.x-2.0"
+core = "7.x"
+project = "querypath"
+datestamp = "1294934802"
+

@@ -1,0 +1,362 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function google_plusone_menu() {
+
+  $items['admin/config/services/google-plusone'] = array(
+    'title'            => 'Google +1 button',
+    'description'      => 'Configure Google Plus One button settings',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('google_plusone_admin_settings'),
+    'access arguments' => array('administer google plusone'),
+    'file'             => 'google_plusone.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function google_plusone_permission() {
+  return array(
+    'administer google plusone' => array(
+      'title' => t('Administer Google +1 Button'),
+    ),
+    'view google plusone' => array(
+      'title' => t('View Google +1 Button'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function google_plusone_theme() {
+  return array(
+    'google_plusone_button' => array(
+      'variables' => array(
+        'node' => NULL,
+        'url' => NULL,
+        'css' => '',
+        'size' => '',
+        'syntax' => 'g:plusone',
+        'annotation' => 'bubble',
+        'width' => '250'
+      ),
+    )
+  );
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function google_plusone_node_view($node, $view_mode) {
+  $node_types = variable_get('google_plusone_node_types', array());
+
+  if (!empty($node_types[$node->type])
+     && user_access('view google plusone')) {
+
+    $locations = variable_get('google_plusone_node_location', array('full'));
+
+    $default = array(
+      'annotation' => 'bubble',
+      'width' => '250',
+      'size' => '',  // standard
+      'css' => 'margin: 0 1em 1em 1em;float:right',
+      'syntax' => 'g:plusone',
+    );
+    $button_settings = variable_get('google_plusone_button_settings', $default) + array('node' => $node);
+
+    if (!empty($locations[$view_mode]) && empty($locations['link'])) {
+      $node->content['google_plusone'] = array(
+        '#markup' => theme('google_plusone_button__' . $node->type, $button_settings),
+        '#weight' => variable_get('google_plusone_weight', -10),
+      );
+    }
+    if (!empty($locations[$view_mode]) && !empty($locations['link'])) {
+      $node->content['links']['#links']['node_google_plusone_link'] = array(
+       'title' => theme('google_plusone_button__' . $node->type, $button_settings),
+       'html' => TRUE,
+      );
+    }
+  }
+}
+
+/**
+ * Returns HTML for the Google +1 button.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - syntax: (optional) A string. If contains 'g:plusone' will be used that syntax. Otherwise, HTML5 syntax by default.
+ *   - url: (optional) A string containing the URL to use in the button, or '<front>' (language-aware)
+ *                     or leaving it empty, the URL will be deducted on-the-fly by Google.
+ *   - node: (optional) The node object. (Only will be use its nid)
+ *   - size:  (optional) A string 'small', 'medium', 'standard' (default), 'tall'
+ *   - annotation: (optional) A string 'none', 'bubble' (default), 'inline'
+ *   - width: (optional) An integer to indicate width of button in case of inline annotation. Default 250
+ *   - css: (optional) A string with inline CSS rules for the wrapper.
+ *
+ * @ingroup themeable
+ */
+function theme_google_plusone_button($variables) {
+  global $base_url;
+
+  // This flag will be used later to decide if including plusone.js script
+  // in google_plusone_page_alter().
+  $add_js = &drupal_static('google_plusone_js_added', FALSE);
+  $add_js = TRUE;
+
+  // URL negotiation
+  $url = '';
+  if (!empty($variables['node']->nid)) {
+    $url = url('node/' . $variables['node']->nid, array('absolute' => TRUE));
+  }
+  elseif (!empty($variables['url'])) {
+    if ($variables['url'] === '<front>') {
+      $url = url('', array('absolute' => TRUE)); // language-aware
+    }
+    else {
+      $url = check_url($variables['url']);
+    }
+  }
+
+  $syntax =     isset($variables['syntax'])     ? $variables['syntax'] : '';
+  $data =       $syntax === 'g:plusone'         ? '' : 'data-';  // HTML5 valid attributes must have 'data-' prefix
+  $url =        empty($url)                     ? '' : $data . 'href="' . $url . '" ';
+  $size =       empty($variables['size'])       ? '' : $data . 'size="' . check_plain($variables['size']) . '" ';
+  $annotation = empty($variables['annotation']) ? '' : $data . 'annotation="' . check_plain($variables['annotation']) . '" ';
+  $width =      empty($variables['width'])      ? '' : $data . 'width="' . check_plain($variables['width']) . '" ';
+  $tag_start =  $syntax === 'g:plusone'         ? '<g:plusone ' : '<div class="g-plusone" ';
+  $tag_end =    $syntax === 'g:plusone'         ? '></g:plusone>' : '></div>';
+
+  // Putting it all together
+  $button = $tag_start . $url . $size . $annotation . $width . $tag_end;
+
+  // Wrap it and serve it
+  if ($variables['css'] !== 'nowrapper') {
+    $css = empty($variables['css']) ? '' : 'style="' . check_plain($variables['css']) . '"';
+    $button = '<div class="g-plusone-wrapper" ' . $css . ' >' . $button . '</div>';
+  }
+
+  return $button;
+}
+
+/**
+ * Implements hook_page_alter().
+ * Adds JavaScript to the appropriate scope/region of the page.
+ *
+ * Note: It can't be added through drupal_add_js() due of the
+ * JavaScript object declared inside the <script> element.
+ *
+ */
+function google_plusone_page_alter(&$page) {
+
+  // Add Javascript only in case there is a button to render.
+  // Flag set in the node_view hook.
+  $add_js = &drupal_static('google_plusone_js_added', FALSE);
+
+  if ($add_js) {
+    $default_advanced = array(
+      'lang' => '',
+      'scope' => 'page_bottom',
+      'parsetags' => 'onload',
+      'async' => 1,
+    );
+    $config = array_merge($default_advanced, variable_get('google_plusone_advanced_settings', $default_advanced));
+    $script_options = array();
+    if (!empty($config['lang'])) {
+      $lang = google_plusone_button_negotiate_language($config['lang']);
+      $script_options[] = 'lang:"' . $lang . '"';
+    }
+    if ($config['parsetags'] !== 'onload') {
+      $script_options[] = 'parsetags:"' . $config['parsetags'] . '"';
+    }
+
+    if ($config['async']) {
+      $script = "<script>";
+      $script .= "(function(d,t){";
+      $script .= "var g=d.createElement(t), s=d.getElementsByTagName(t)[0];";
+      $script .= "g.async=true; g.src='https://apis.google.com/js/plusone.js';";
+      $script .= empty($script_options) ? '' : 'g.innerHTML={' . implode(',', $script_options) . '};';
+      $script .= "s.parentNode.insertBefore(g,s);})(document,'script');</script>";
+    }
+    else {
+      $script = '<script type="text/javascript" src="https://apis.google.com/js/plusone.js">';
+      $script .= empty($script_options) ? '' : '{' . implode(',', $script_options) . '}';
+      $script .= '</script>';
+    }
+
+    $page[$config['scope']]['google_plusone'] = array(
+      '#markup' => $script,
+    );
+  }
+}
+
+/**
+ * Returns an appropriated language code based on global $language variable.
+ *
+ * There are some edge cases where Drupal language codes doesn't match
+ * with the ones used by Google +1 API. See
+ *       locale_get_predefined_list() function in 'includes/iso.inc'
+ *       http://code.google.com/apis/+1button/#languages
+ *
+ * @param  $glanguages A string of lower-case language codes separated by commas.
+ *                      Example: es,fr,pt-br,he
+ *
+ * @return A Google +1 compatible language Code (string)
+ *         or empty string. In this last case, Google will use 'en-US' language by default.
+ *
+ */
+function google_plusone_button_negotiate_language($glanguages = array()) {
+  global $language;
+
+  $current_code = $language->language;
+  $glanguages = explode(",", $glanguages);
+  /* Note that Drupal uses lower-case language codes. Like pt-br
+   * and array indexes are case sensitive. That's why in _submit hook of admin
+   * settings, the codes contained in $glanguages are lower-case'd.
+   */
+  if (!empty($glanguages[$current_code])) {
+    return $current_code;
+  }
+
+  // Any other edge-case
+  switch (substr($current_code, 0, 2)) {
+    case 'zh':
+      return ($current_code === 'zh-hans') ? 'zh-CN' : 'zh-TW';
+    case 'he':
+      return 'iw';
+    case 'en':
+      return 'en-GB';
+    case 'es':
+      return 'es-419'; // if didn't match before with 'es', then only other option is 'es-419'
+    case 'nn':
+      return 'no';
+    case 'pt':
+      return 'pt-PT';
+    default:
+      return '';
+  }
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function google_plusone_block_info() {
+  $blocks['google_plusone_block'] = array(
+    'info' => t('Google Plus One +1'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function google_plusone_block_view($delta = '') {
+  if (user_access('view google plusone')) {
+    // Flag to output script in google_plusone_page_alter().
+    $add_js = &drupal_static('google_plusone_js_added', FALSE);
+    $add_js = TRUE;
+    $default = array(
+      'url' => '',
+      'annotation' => 'bubble',
+      'width' => '250',
+      'size' => '',  // standard
+      'css' => 'text-align:center;',
+    );
+    $settings = variable_get('google_plusone_block_settings', $default);
+    $block['content'] = theme('google_plusone_button__block', $settings);
+    return $block;
+  }
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function google_plusone_block_configure($delta = '') {
+  if ($delta == 'google_plusone_block') {
+    module_load_include('inc', 'google_plusone', 'google_plusone.admin');
+     // Custom javascript code to preview in real-time the button
+    drupal_add_js(drupal_get_path('module', 'google_plusone') . '/google_plusone.admin.js');
+    drupal_add_js('https://apis.google.com/js/plusone.js', 'external');
+    $default = array(
+      'url' => '',
+      'annotation' => 'bubble',
+      'width' => '250',
+      'size' => '', // standard
+      'css' => 'text-align:center',
+    );
+    $settings = variable_get('google_plusone_block_settings', $default);
+    $available_sizes = array(
+      'small' => t('Small (15px)'),
+      'medium' => t('Medium (20px)'),
+      '' => t('Standard (24px)'),
+      'tall' => t('Tall (60px)'),
+    );
+    $available_annotations = array(
+      'none' => t('None'),
+      'bubble' => t('Bubble (by default)'),
+      'inline' => t('Inline'),
+    );
+    $form['g1button'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Button Settings'),
+      '#description' => t('Notice that these settings are exclusively for this block and they cover the basic options. The rest of settings will be taken from the <a href="@sett">general settings</a>.', array('@sett' => url('admin/config/services/google-plusone'))),
+    );
+    $form['g1button']['google_plusone_block_url'] = array(
+      '#title' => t('URL address to use for Google +1 button'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['url'],
+      '#description' => t('3 different options: <br/><ol><li>Type an fixed, absolute URL. Remember to type the <em>http://</em> part.</li><li>Type <em>&lt;front&gt;</em></front> to use always your frontpage ($base_url), that is language-aware. </li><li>Leave empty. Then it will be used the current URL address present in that moment in that page where the block is.</li></ol>'),
+    );
+    $form['g1button']['google_plusone_block_annotation'] = array(
+      '#type' => 'radios',
+      '#title' => t('Annotation: How to show the counting?'),
+      '#options' => $available_annotations,
+      '#default_value' => $settings['annotation'],
+      '#description' => google_plusone_build_preview_button($available_sizes),
+    );
+    $form['g1button']['google_plusone_block_width'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Width (only affects to inline annotation)'),
+      '#default_value' => $settings['width'],
+      '#size' => 20,
+      '#description' => t('By default recommended 250 (pixels). Minimum 120'),
+    );
+    $form['g1button']['google_plusone_block_size'] = array(
+      '#type' => 'radios',
+      '#title' => t('Size'),
+      '#options' => $available_sizes,
+      '#default_value' => $settings['size'],
+    );
+    $form['g1button']['google_plusone_block_wrapper_css'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Optional wrapper with CSS'),
+      '#maxlength' => 256,
+      '#default_value' => $settings['css'],
+      '#description' => t('To help with the layout and placement of the button, it will be rendered by default inside a wrapper: 	&lt;div class="g-plusone-wrapper"&gt;	&lt;/div&gt;<br/>You can enter CSS rules to style this wrapper. By default <em>text-align:center</em><br />To disable totally the wrapper, input the word <em>nowrapper</em>'),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function google_plusone_block_save($delta = '', $edit = array()) {
+  if ($delta == 'google_plusone_block') {
+    module_load_include('inc', 'google_plusone', 'google_plusone.admin');
+    $settings = array(
+      'url' => $edit['google_plusone_block_url'],
+      'annotation' => $edit['google_plusone_block_annotation'],
+      'width' => $edit['google_plusone_block_width'],
+      'size' => $edit['google_plusone_block_size'],
+      'css' => google_plusone_trim($edit['google_plusone_block_wrapper_css'], ';'),
+    );
+    variable_set('google_plusone_block_settings', $settings);
+  }
+}

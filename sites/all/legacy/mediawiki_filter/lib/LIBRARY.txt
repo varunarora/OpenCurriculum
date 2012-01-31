@@ -1,0 +1,35 @@
+You need the following files froma a Mediawiki installation in this directory:
+
+includes/CoreParserFunctions.php
+includes/Defines.php
+includes/Hooks.php
+includes/ImageGallery.php
+includes/MagicWord.php
+includes/MessageCache.php
+includes/Namespace.php
+includes/ObjectCache.php
+includes/ParserOptions.php
+includes/ParserOutput.php
+includes/Parser.php
+includes/Sanitizer.php
+includes/SpecialPage.php
+includes/StringUtils.php
+includes/XmlFunctions.php
+includes/Xml.php
+
+includes/normal/UtfNormalData.inc
+includes/normal/UtfNormalDataK.inc
+includes/normal/UtfNormal.inc
+includes/normal/UtfNormalUtil.inc
+
+languages/Language.php
+languages/Names.php
+
+languages/messages/MessagesEn.php
+
+
+The easiest is to take the "includes" and "languages" folder from a normal Mediawiki
+installation and copy them into this directory.
+
+The last tested Mediawiki version is 1.11.1. You can get it from
+http://www.mediawiki.org/wiki/Download

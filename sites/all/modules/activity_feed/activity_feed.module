@@ -1,0 +1,154 @@
+<?php
+
+/*
+ * Implements hook_field_info()
+ */
+
+function activity_feed_field_info(){
+	return array(
+	  'activity_feed' => array(
+	    'label' => t('Activity feed'),
+	    'description' => t('Displaying a user\'s activity feed'),
+	    'default_widget' => 'activity_feed_widget',
+	    'default_formatter' => 'activity_feed_formatter',
+	  ),
+	);
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * 
+ */
+function activity_feed_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  /*foreach ($items as $delta => $item) {
+    if (!empty($item['message'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'field_example_invalid',
+          'message' => t('Color must be in the HTML format #abcdef.'),
+        );
+    }
+  }*/
+}
+
+/*
+ * Implements hook_field_is_empty()
+ */
+
+function activity_feed_field_is_empty($item, $field){
+	return empty($item['message']);
+}
+
+function activity_feed_menu_alter(&$items) {
+	
+	$items['user/%user/track']['type'] = MENU_CALLBACK;
+
+}
+
+/*
+ * Implements hook_field_formatter_info()
+ */
+
+function activity_feed_field_formatter_info() {
+	return array(
+	  'activity_feed_formatter' => array(
+	    'label' => t('Simple user activity feed formatter'),
+	    'field types' => array('activity_feed'),
+	  ),
+	);
+}
+
+/*
+ * Implements hook_field_formatter_view()
+ */
+
+function activity_feed_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+	$element = array();
+	
+	switch ($display['type']) {
+		case 'activity_feed_formatter':
+			foreach($items as $delta => $item){
+				if ($item['message']){
+					$formattedactivity = $item['message'];
+					$element[$delta]['#markup'] = '<span>'.$formattedactivity.'</span>';
+				}
+			}
+			break;
+	}
+	return $element;
+}
+
+
+/*
+ * Implements hook_field_widget_info()
+ */
+
+function activity_feed_field_widget_info(){
+	return array(
+	'activity_feed_widgety' => array(
+      'label' => t('Activity Feed'),
+      'field types' => array('activity_feed'),
+    ),
+	);
+}
+
+/*
+ * Implements hook_field_widget_form()
+ */
+
+function activity_feed_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+/*
+  $value = isset($items[$delta]['message']) ? $items[$delta]['message'] : '';
+  $element += array(
+    '#delta' => $delta,
+    '#type' => 'hidden',
+  );
+  $element['message'] = array();
+	
+	switch($instance['widget']['type']){
+		case 'activity_feed_widgety':
+			$element['message'] += array(
+				'#type' => 'textfield',
+				'#title' => t('Message'),
+				'#default_value' => $value,
+      		    '#size' => 7,
+                '#maxlength' => 50,
+			);
+			
+			$element['uid'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Massage'),
+				'#default_value' => 1,
+			);
+			
+			$element['type'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Massage'),
+				'#default_value' => 1,
+			);
+			
+			$element['created'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Massage'),
+				'#default_value' => time(),
+			);
+			
+			
+			break;
+	}
+	return $element;
+ */
+}
+
+/*
+ * Implements hook_field_widget_error()
+ */
+
+function activity_feed_widget_error($element, $error, $form, &$form_state){
+	switch($error['error']){
+		case 'activity_feed_invalid':
+			form_error($element, $error['message']);
+			break;
+	}
+}
+

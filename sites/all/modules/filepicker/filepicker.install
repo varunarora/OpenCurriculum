@@ -1,0 +1,181 @@
+<?php
+
+/**
+ * @file
+ * filepicker install, update and uninstall functions
+ */
+
+/**
+ * Implements hook_install().
+ */
+function filepicker_install() {
+  include_once('filepicker.module');
+  // Create a directory structure.
+  $dir = filepicker_get_files_directory();
+
+  if (file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
+    drupal_get_messages('status', TRUE);
+  }
+  else {
+    drupal_set_message(st('Directory creation for the Filepicker module was unsuccessful.'), 'error');
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function filepicker_schema() {
+  $schema['filepicker'] = array(
+    'description' => t('The file table'),
+    'fields' => array(
+      'file_id' => array(
+        'description' => t('The primary file identifier.'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'uid' => array(
+        'description' => t('The user identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'file_name' => array(
+        'description' => t('The file name'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'file_title' => array(
+        'description' => t('The file title'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'file_date' => array(
+        'description' => t('The file date'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'primary key' => array('file_id'),
+  );
+
+  $schema['filepicker_user_groups'] = array(
+    'description' => t('The groups table'),
+    'fields' => array(
+      'gid' => array(
+        'description' => t('The primary group identifier.'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'uid' => array(
+        'description' => t('The user identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'group_name' => array(
+        'description' => t('The group name.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'group_description' => array(
+        'description' => t('The group description.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'state' => array(
+        'description' => t('The currently selected group.'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'public' => array(
+        'description' => t('The public flag.'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'avail_roles' => array(
+        'description' => t('List of roles that may view this group.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'all'),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'primary key' => array('gid'),
+  );
+
+  $schema['filepicker_group_files'] = array(
+    'fields' => array(
+      'gid' => array(
+        'description' => t('The group identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'file_id' => array(
+        'description' => t('The file identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+    ),
+    'indexes' => array(
+      'gid' => array('gid'),
+      'file_id' => array('file_id'),
+    ),
+  );
+
+  $schema['filepicker_variables'] = array(
+    'fields' => array(
+      'name' => array(
+        'description' => t('filepicker variables.'),
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'value' => array(
+        'description' => t('filepicker variable values.'),
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => t('The user identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'name' => array('name')
+    ),
+  );
+
+  return $schema;
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function filepicker_uninstall() {
+
+#  $query = db_delete('variable')
+#    ->condition('name', 'filepicker_%', 'LIKE')
+#    ->execute();
+}
+

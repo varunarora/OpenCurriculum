@@ -1,0 +1,13 @@
+<?php
+
+function dirty_form_article_node_form_alter($form, &$form_state, $form_id){
+	$form['actions']['submit']['#submit'][] = 'article_form_submiter';
+	debug($form['actions']['submit']['#submit']);
+}
+
+function article_form_submiter($form, &$form_state) {
+  $form_state['redirect'] = 'node/resources';
+}
+
+?>
+

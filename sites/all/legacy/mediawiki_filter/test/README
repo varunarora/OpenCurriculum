@@ -1,0 +1,27 @@
+$ Id $
+
+This folder contains testfiles for Mediawiki Filter.
+
+Unfortunately, the current-test procedure is very crude.. We take some
+reference-pages from Mediawiki.org's help section, adapt them slightly and (try
+to) render them. That's basically it...
+
+
+For "testing" you need to:
+
+- Upload "example.jpg" to Drupal, call the node "Example"
+- Create four nodes containing the reference markup found in this folder.
+
+If it renders without crashing - hooray! :)
+
+
+Note that
+
+- some default templates
+- mediawiki.org templates
+- reference images & links
+- categories
+- languages
+
+do not work work (yet?)
+

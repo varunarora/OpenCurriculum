@@ -1,0 +1,19 @@
+.resource {
+	border: 1px solid #ddd;
+	padding: 10px;
+	margin-bottom: 10px;
+	min-height: 40px;
+}
+
+.resource a:hover {
+	cursor: pointer;
+}
+
+.resource h2 {
+	display: inline;
+}
+
+.resourceInfo {
+	display: inline;
+	float: right;
+}

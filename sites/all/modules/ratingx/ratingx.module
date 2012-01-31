@@ -1,0 +1,223 @@
+<?php
+
+function ratingx_menu(){
+	
+	$items[] = array();
+	/*
+	$items["user/%user/rating"] = array(
+		'title' => 'pehn da takka',
+		'description' => 'Just testing how this voting this works man',
+		'type' => MENU_LOCAL_TASK,
+		'page callback' => 'ratingx_user_ratings',
+		'page arguments' => array(1),
+		'access callback' => 'ratingx_access',
+	);
+	*/
+	return $items;
+}
+
+function ratingx_access() {
+	return user_access('access content'); 
+}
+
+
+function ratingx_user_ratings($userx){
+	/*
+	$instance = array(
+		'field_name' => 'field_feed',
+		'entity_type' => 'user',
+		'bundle' => 'user',
+		'revision_id' => 1,
+		'field_feed_id' => 2,
+		'field_feed_uid' => 1,
+		'field_feed_message' => 'The administrator did some stupid stuff',
+		'field_feed_type' => 1,
+		'field_feed_created' => time(),
+	);
+	
+debug(field_create_instance($instance));
+	 */
+	
+
+//_add_feed_item(1, 'The administrator did some stupid stuff');
+return $result;
+return 'cool';
+}
+
+
+
+function ratingx_user_view($account, $view_mode, $langcode){
+	/*
+	$user_set = array();
+	$user_set[0] = array(
+		'entity_id' => $account->uid,
+		'entity_type' => 'user',
+		'value_type' => 'points',
+		'tag' => 'overall',
+	);	
+	//debug($build['field_name']['#object']->uid);
+	//debug(votingapi_recalculate_results('user', $build['field_name']['#object']->uid));
+	 * 
+	 */
+	/*
+	$current_sum_object = votingapi_recalculate_results('user', $account->uid);
+	
+	if(isset($current_sum_object[2])){
+	$current_sum = $current_sum_object[2];} else $current_sum = '0';
+	$account->field_points['und'][0]['value'] = $current_sum['value'];
+	//dsm($account);*/
+}
+
+
+function ratingx_moderation_submission($node){
+  global $user;
+	if ($node->type == 'book' && $user->uid){
+		_ratingx_add_user_points($user->uid, '1');
+	}
+}
+
+function ratingx_moderation_points_form($form, &$form_state, $revision, $uid){
+	$form = array();
+	
+	$form['uid'] = array(
+		'#title' => t('User ID'),
+		'#type' => 'hidden',
+		'#value' => $uid,
+	);
+		
+	$form['howmany_select'] = array(
+    	'#title' => t('How many points do you want to give for this submission?'),
+    	'#type' => 'select',
+    	'#options' => array(1 => 'None', 2 => '+3', 3 => '+5', 4 => '-2'),
+    	'#default_value' => 1,
+    	'#prefix' => '<div id="checkboxes-div-'.$revision.'">',
+    	'#suffix' => '</div>',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Apply',
+    '#ajax' => array(
+  		   	 'callback' => 'ajax_ratingx_moderation_points_callback',
+     		 'wrapper' => 'checkboxes-div-'.$revision,
+     	 	'method' => 'replace',
+    	  	'effect' => 'fade',
+   	 ),
+  );
+
+  return $form;
+}
+
+
+function ajax_ratingx_moderation_points_callback($form, $form_state) {
+  $editor = user_load($form_state['values']['uid']);
+  if ($form_state['values']['howmany_select'] == '2'){
+  	_ratingx_add_user_points($editor->uid, '3');
+	return '3 points have been added to '.$editor->name.'\'s account';  
+  }
+  if ($form_state['values']['howmany_select'] == '3'){
+  	_ratingx_add_user_points($editor->uid, '5');
+	return '5 points have been added to '.$editor->name.'\'s account';  
+  }
+  if ($form_state['values']['howmany_select'] == '4'){
+  	_ratingx_add_user_points($editor->uid, '-2');
+	return '2 points have been deducted from '.$editor->name.'\'s account';  
+  }
+  return 'No change has been made to this account';
+}
+function _ratingx_get_user_points(){
+	
+}
+
+function _ratingx_add_user_points($entity_id, $num_points){
+	$user_points = array();
+	$user_points = array(
+		'entity_id' => $entity_id,
+		'entity_type' => 'user',
+		'value_type' => 'points',
+		'value' => $num_points,
+		'tag' => 'overall',
+	);
+	
+	votingapi_add_votes($user_points);
+	
+	
+	// Updating the points field for the user
+	$current_sum_object = votingapi_recalculate_results('user', $entity_id);
+	
+	if(isset($current_sum_object[2])){
+	$current_sum = $current_sum_object[2];} else $current_sum = '0';
+	$sum = $current_sum['value'];
+	
+	$user = user_load($entity_id);
+	$edit = (array) $user;
+	$edit['field_points']['und'][0]['value'] = $sum;
+	user_save($user, $edit);
+	
+	
+	// Putting it on the feed
+	_add_feed_item(1, 'The administrator was rewarded ' + $num_points + ' points');
+	
+}
+
+function _add_feed_item($uid, $message){
+	
+	$current_time = REQUEST_TIME;
+	
+	$last_delta = _get_final_delta($uid);
+	
+	$nid = db_insert('field_data_field_feed') 
+			->fields(array(
+  				'entity_type' => 'user',
+ 				 'bundle' => 'user',
+ 				 'entity_id' => $uid,
+ 				 'revision_id' => 1,
+ 				 'deleted' => 0,
+ 				 'delta' => $last_delta+1,
+ 				 'language' => 'und',
+		'field_feed_id' => 2,
+		'field_feed_uid' => $uid,
+		'field_feed_message' => $message,
+		'field_feed_type' => 1,
+  				'field_feed_created' => $current_time,
+				))
+				->execute();
+	
+		$did = db_insert('field_revision_field_feed') 
+			->fields(array(
+  				'entity_type' => 'user',
+ 				 'bundle' => 'user',
+ 				 'entity_id' => $uid,
+ 				 'revision_id' => 1,
+ 				 'deleted' => 0,
+ 				 'delta' => $last_delta+1,
+ 				 'language' => 'und',
+		'field_feed_id' => 2,
+		'field_feed_uid' => $uid,
+		'field_feed_message' => $message,
+		'field_feed_type' => 1,
+  				'field_feed_created' => $current_time,
+				))
+				->execute();
+
+}
+
+function _get_final_delta($uid){
+	
+	 $query = db_select('field_data_field_feed', 'f')
+    		->fields('f', array('delta'))
+	  		->condition('entity_id', $uid)
+	 		->orderBy('delta', 'DESC')
+			->range(0,1)
+    		->execute()
+    		->fetchCol();
+
+	$delta = 0;
+	
+	foreach ($query as $result){ 
+		$delta = $result;
+	}
+	
+	return $delta;
+
+ }

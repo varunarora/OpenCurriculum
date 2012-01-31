@@ -1,0 +1,27 @@
+name = Imagepicker
+description = Upload, browse and add images to your nodes.
+package = Media
+core = 7.x
+
+files[] = imagepicker.install
+files[] = imagepicker.module
+files[] = imagepicker.admin.inc
+files[] = imagepicker.edit.inc
+files[] = imagepicker.form-elements.inc
+files[] = imagepicker.group.inc
+files[] = imagepicker.imagefuncs.inc
+files[] = imagepicker.import.inc
+files[] = imagepicker.theme.inc
+files[] = imagepicker.upload.inc
+files[] = imagepicker.user.inc
+
+configure = admin/config/media/imagepicker
+
+
+
+; Information added by drupal.org packaging script on 2011-07-07
+version = "7.x-1.4"
+core = "7.x"
+project = "imagepicker"
+datestamp = "1310037716"
+

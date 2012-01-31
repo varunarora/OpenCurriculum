@@ -1,0 +1,4 @@
+; $ Id: $
+name = "Mediawiki filter"
+description = "Filter which uses Mediawiki parser for formatting"
+core = 7.x

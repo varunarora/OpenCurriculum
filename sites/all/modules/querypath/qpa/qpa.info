@@ -1,0 +1,18 @@
+;$Id: qpa.info,v 1.2.2.1 2010/07/13 03:45:14 ebrand Exp $
+
+name = QueryPath for Arrays
+package = QueryPath
+description = A QueryPath implementation that operates on arrays.
+core = 7.x
+php = 5.2
+dependencies[] = querypath
+files[] = qpa.classes.inc
+files[] = qpa.info
+files[] = qpa.module
+files[] = qpa.phpunit.inc
+; Information added by drupal.org packaging script on 2011-01-13
+version = "7.x-2.0"
+core = "7.x"
+project = "querypath"
+datestamp = "1294934802"
+

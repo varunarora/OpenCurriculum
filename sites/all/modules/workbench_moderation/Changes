@@ -1,0 +1,2 @@
+1. ratingx_moderation_submission being called from workbench_moderation_node_update
+2. Added new column for AJAX manipulation of votes on workbench_moderation in moderator's view (workbench_moderation_node_history_view in workbench_moderation.node.inc)

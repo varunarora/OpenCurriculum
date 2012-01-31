@@ -1,0 +1,136 @@
+
+#filep {
+  clear: both;
+  padding-top: 10px;
+}
+.filep_holder {
+  float: left;
+  margin: 10px;
+  border: 1px solid #cbd3d8;
+  width: 100px;
+  height: 100px;
+  text-align: center;
+  padding: 2px;
+}
+.filep_holder a {
+  display: block;
+  height: 100px;
+  width: 100px;
+}
+.filep_file_options {
+  width: 120px;
+  float: left;
+}
+.filep_file_options .form-item {
+  margin-top: 0;
+}
+#filep_file_holder {
+  float: left;
+  margin-right: 40px;
+  margin-left: 20px;
+}
+
+#filep_desc_control {
+  clear: both;
+}
+
+#filep_controls {
+  padding-top: 10px;
+  clear: both;
+}
+
+/* filepicker page */
+#filep_page {
+}
+#filep_page_file {
+  text-align: center;
+  margin: 15px;
+}
+#filep_page_description {
+}
+
+#filep_page_returnlink {
+}
+
+#filep_edit_form {
+  float: left;
+}
+#filep_edit_form .form-item {
+  margin-top: 0;
+}
+
+#filep_file_view {
+  margin: 15px 15px 15px 15px;
+}
+#filep_file_view_title {
+  padding: 2px 0px 2px 0px;
+}
+#filep_file_view_name {
+  padding: 2px 0px 2px 0px;
+}
+#filep_file_view_info {
+  padding: 2px 0px 2px 0px;
+}
+
+.filep_help {
+  padding: 2px 0px 4px 4px;
+  margin-left: 20px;
+}
+
+.filep_groups_list {
+  margin: 10px 0 10px 0;
+}
+.filep_groups_info {
+  margin: 10px 0 20px 0;
+}
+
+#filep_order_form {
+  margin: 8px 0px 8px 0px;
+}
+#filep_groups_form {
+  margin: 8px 0px 8px 0px;
+}
+#filep_search_form {
+  margin: 8px 0px 8px 0px;
+}
+#filep_users_form {
+  margin: 8px 0px 8px 0px;
+}
+#filep_browse_form {
+  margin: 8px 0px 8px 0px;
+}
+#filep_quota_form {
+  margin: 8px 0px 8px 0px;
+}
+.filep_files_list {
+  margin: 10px 0 10px 0;
+}
+
+.filep_title {
+  font-weight: bold;
+
+}
+.filep_desc {
+  font-style: italic;
+}
+
+#filep_trig {
+  cursor: pointer;
+  color: #39c;
+}
+#filep_targ {
+  display: none;
+}
+/* add this to your style.css to control the body of the iframe */
+#filepicker {
+
+}
+
+/* class for the inserted container */
+.filep_file {
+
+}
+
+.filepicker_upload_link {
+  margin: 4px 0 8px 0;
+}

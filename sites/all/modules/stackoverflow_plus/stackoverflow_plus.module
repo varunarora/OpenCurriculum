@@ -1,0 +1,409 @@
+<?php
+
+include_once dirname(__FILE__) . '/includes/stackoverflow_plus.field.inc';
+
+
+/**
+ * Implementation of hook_help().
+ */
+function stackoverflow_plus_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/config/content/stackoverflow_plus':
+      $output = t('This page is used to configure site-wide features of the StackOverflow Plus module.');
+    break;
+  }
+  return $output;
+}
+
+
+/**
+ * Implementation of hook_permission().
+ *
+ * Exposes permissions for plussing/minusing content.
+ */
+function stackoverflow_plus_permission() {
+  return array(
+    'plus content' => array(
+      'title' => t('plus content'),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_theme().
+ */
+function stackoverflow_plus_theme() {
+  return array(
+    // StackOverflow Plus theme functions.
+    'stackoverflow_plus' => array(
+      'render element' => 'element',
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),
+  );
+}
+
+
+function _stackoverflow_plus_cast_vote($entity_type, $id, $value, $tag = NULL, $uid = NULL, $result = FALSE, $skip_validation = FALSE) {
+  global $user;
+  $tag = empty($tag) ? 'vote' : $tag;
+  $uid = empty($uid) ? $user->uid : $uid;
+  // Bail out if the user's trying to vote on an invalid object.
+  if (!$skip_validation && !stackoverflow_plus_validate_target($entity_type, $id, $tag, $uid)) {
+    return array();
+  }
+  // Sanity-check the incoming values.
+  if (is_numeric($id) && is_numeric($value)) {
+    if ($value > 100) {
+      $value = 100;
+    }
+
+    // Get the user's current vote.
+    $criteria = array('entity_type' => $entity_type, 'entity_id' => $id, 'tag' => $tag, 'uid' => $uid);
+    // Get the unique identifier for the user (IP Address if anonymous).
+    $user_criteria = votingapi_current_user_identifier();
+    $user_votes = votingapi_select_votes($criteria + $user_criteria);
+
+    if ($value == 0) {
+      votingapi_delete_votes($user_votes);
+    }
+    else {
+      $votes = $criteria += array('value' => $value);
+      votingapi_set_votes($votes);
+    }
+
+    // Moving the calculationg after saving/deleting the vote but before getting the votes.
+    votingapi_recalculate_results($entity_type, $id);    
+    return stackoverflow_plus_get_votes($entity_type, $id, $tag, $uid);
+  }
+}
+
+
+/**
+ * Utility function to retrieve VotingAPI votes.
+ *
+ * Note that this should not be used for general vote retrieval, instead the
+ * VotingAPI function votingapi_select_results() should be used, which is more
+ * efficient when retrieving multiple votes.
+ *
+ * @param $entity_type
+ *   The Entity type for which to retrieve votes.
+ * @param $id
+ *   The ID for which to retrieve votes.
+ * @param $tag
+ *   The VotingAPI tag for which to retrieve votes.
+ * @param $uid
+ *   Optional. A user ID for which to retrieve votes.
+ * @return
+ *   An array of the following keys:
+ *   - average: An array of VotingAPI results, including the average 'value'.
+ *   - count: An array of VotingAPI results, including the count 'value'.
+ *   - user: An array of VotingAPI results, including the user's vote 'value'.
+ */
+function stackoverflow_plus_get_votes($entity_type, $id, $tag = 'vote', $uid = NULL) {
+  global $user;
+
+  if (!isset($uid)) {
+    $uid = $user->uid;
+  }
+
+  $criteria = array(
+    'entity_type' => $entity_type,
+    'entity_id' => $id,
+    'value_type' => 'percent',
+    'tag' => $tag,
+  );
+
+  $votes = array(
+    'average' => array(),
+    'count' => array(),
+    'user' => array(),
+  );
+
+  $results = votingapi_select_results($criteria);
+  foreach ($results as $result) {
+    if ($result['function'] == 'average') {
+      $votes['average'] = $result;
+    }
+    if ($result['function'] == 'count') {
+      $votes['count'] = $result;
+    }
+  }
+  if ($uid) {
+    $user_vote = votingapi_select_votes($criteria += array('uid' => $uid));
+    if ($user_vote) {
+      $votes['user'] = $user_vote[0];
+      $votes['user']['function'] = 'user';
+    }
+  }
+  else {
+    // If the user is anonymous, we never bother loading their existing votes.
+    // Not only would it be hit-or-miss, it would break page caching. Safer to always
+    // show the 'fresh' version to anon users.
+    $votes['user'] = array('value' => 0);
+  }
+
+  return $votes;
+}
+
+
+
+/**
+ * Check that an item being voted upon is a valid vote.
+ *
+ * @param $entity_type
+ *   Type of target.
+ * @param $id
+ *   Identifier within the type.
+ * @param $tag
+ *   The VotingAPI tag string.
+ * @param $uid
+ *   The user trying to cast the vote.
+ *
+ * @return boolean
+ */
+function stackoverflow_plus_validate_target($entity_type, $id, $tag, $uid = NULL) {
+  if (!isset($uid)) {
+    $uid = $GLOBALS['user']->uid;
+  }
+
+  $access = module_invoke_all('stackoverflow_plus_access', $entity_type, $id, $tag, $uid);
+  foreach ($access as $result) {
+    if ($result == TRUE) {
+      return TRUE;
+    }
+    if ($result === FALSE) {
+      return FALSE;
+    }
+  }
+}
+
+
+/**
+ * Form builder; Build a custom Fivestar rating widget with arbitrary settings.
+ *
+ * This function is usually not called directly, instead call
+ * drupal_get_form('fivestar_custom_widget', $values, $settings) when wanting
+ * to display a widget.
+ *
+ * @param $form_state
+ *   The form state provided by Form API.
+ * @param $values
+ *   An array of current vote values from 0 to 100, with the following array
+ *   keys:
+ *   - user: The user's current vote.
+ *   - average: The average vote value.
+ *   - count: The total number of votes so far on this content.
+ * @param $settings
+ *   An array of settings that configure the properties of the rating widget.
+ *   Available keys for the settings include:
+ *   - content_type: The type of content which will be voted upon.
+ *   - content_id: The content ID which will be voted upon.
+ *   - stars: The number of stars to display in this widget, from 2 to 10.
+ *     Defaults to 5.
+ *   - autosubmit: Whether the form should be submitted upon star selection.
+ *     Defaults to TRUE.
+ *   - allow_clear: Whether or not to show the "Clear current vote" icon when
+ *     showing the widget. Defaults to FALSE.
+ *   - required: Whether this field is required before the form can be
+ *     submitted. Defaults to FALSE.
+ *   - tag: The VotingAPI tag that will be registered by this widget. Defaults
+ *     to "vote".
+ */
+function stackoverflow_plus_custom_widget($form, &$form_state, $values, $settings) {
+  $form = array(
+    '#attributes' => array(
+      'class' => array('stackoverflow_plus-widget')
+    ),
+  );
+  $form['#submit'][] = 'stackoverflow_plus_form_submit';
+
+  $form_state['settings'] = $settings;
+
+  $form['vote'] = array(
+    '#type' => 'stackoverflow_plus',
+    '#stars' => $settings['stars'],
+    '#auto_submit' => isset($settings['autosubmit']) ? $settings['autosubmit'] : TRUE,
+    '#allow_clear' => $settings['allow_clear'],
+    '#required' => isset($settings['required']) ? $settings['required'] : FALSE,
+    '#widget' => isset($settings['widget']) ? $settings['widget'] : array('name' => 'default', 'css' => 'default'),
+    '#values' => $values,
+    '#settings' => $settings,
+  );
+
+  $form['stackoverflow_plus_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Rate'),
+    '#attributes' => array('class' => array('stackoverflow_plus-submit')),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for the above form (non-javascript version).
+ */
+function stackoverflow_plus_form_submit($form, &$form_state) {
+  // Cast the vote.
+  _stackoverflow_plus_cast_vote($form_state['settings']['content_type'], $form_state['settings']['content_id'], $form_state['values']['vote'], $form_state['settings']['tag']);
+
+  // Set a message that the vote was received.
+  if ($form_state['values']['vote'] === '0') {
+    drupal_set_message(t('Your vote has been cleared.'));
+  }
+  elseif (is_numeric($form_state['values']['vote'])) {
+    drupal_set_message(t('Thank you for your vote.'));
+  }
+}
+
+
+/**
+ * AJAX submit handler for fivestar_custom_widget
+ */
+function stackoverflow_plus_ajax_submit($form, $form_state) {
+  $votes = _stackoverflow_plus_cast_vote($form_state['settings']['content_type'], $form_state['settings']['content_id'], $form_state['values']['vote'], $form_state['settings']['tag']);
+
+  $values = array();
+  $values['user'] = isset($votes['user']['value']) ? $votes['user']['value'] : 0;
+  $values['average'] = isset($votes['average']['value']) ? $votes['average']['value'] : 0;
+  $values['count'] = isset($votes['count']['value']) ? $votes['count']['value'] : 0;
+
+  $form['vote']['#values'] = $values;
+  // TODO: why does passing in NULL works, yet passing in the actual form-id doesn't work.
+  drupal_process_form(NULL, $form, $form_state);
+
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'stackoverflow_plusUpdate',
+        'data' => drupal_render($form['vote']),
+      ),
+    ),
+  );
+}
+
+
+
+/**
+ * Implementation of hook_elements().
+ *
+ * Defines 'stackoverflow_plus' form element type
+ */
+function stackoverflow_plus_element_info() {
+  $type['stackoverflow_plus'] = array(
+    '#input' => TRUE,
+    '#allow_clear' => FALSE,
+    '#auto_submit' => FALSE,
+    '#process' => array('stackoverflow_plus_expand'),
+    '#theme_wrappers' => array('form_element'),
+    '#values' => array(
+      'user' => 0,
+      'average' => 0,
+      'count' => 0,
+    ),
+    '#settings' => array(
+      'style' => 'user',
+      'text' => 'none',
+    ),
+  );
+  return $type;
+}
+
+
+
+/**
+ * Process callback for stackoverflow_plus_element -- see stackoverflow_plus_element()
+ */
+function stackoverflow_plus_expand($element) {
+  // Add CSS and JS
+  $path = drupal_get_path('module', 'stackoverflow_plus');
+  $element['#attached']['js'][] = $path . '/js/stackoverflow_plus.js';
+  $element['#attached']['css'][] = $path . '/css/stackoverflow_plus.css';
+  $settings = $element['#settings'];
+  $values = $element['#values'];
+  $class[] = 'clearfix';
+
+  $options = array('-' => t('Select rating'));
+  /*
+  for ($i = 1; $i <= $element['#stars']; $i++) {
+    $this_value = ceil($i * 100/$element['#stars']);
+    $options[$this_value] = t('Give it @star/@count', array('@star' => $i, '@count' => $element['#stars']));
+  }
+   * 
+   */
+
+  $options[1] = t('Plus 1');
+  $options[2] = t('Minus 1');  
+  
+  // Display clear button only if enabled.
+  if ($element['#allow_clear'] == TRUE) {
+    $options[0] = t('Cancel rating');
+  }
+
+  $element['vote'] = array(
+    '#type' => 'select',
+    '#options' => $options,
+    '#required' => $element['#required'],
+    '#theme' => 'stackoverflow_plus_select',
+    '#default_value' => _stackoverflow_plus_get_element_default_value($element),
+  );
+
+  if (isset($element['#parents'])) {
+    $element['vote']['#parents'] = $element['#parents'];
+  }
+  if (isset($element['#weight'])) {
+    $element['vote']['#weight'] = $element['#weight'];
+  }
+
+
+  $class[] = 'fivestar-form-item';
+
+  $element['#prefix'] = '<div ' . drupal_attributes(array('class' => $class)) . '>';
+  $element['#suffix'] = '</div>';
+
+  // Add AJAX handling if necessary.
+  if (!empty($element['#auto_submit'])) {
+    $element['vote']['#ajax'] = array(
+      'callback' => 'stackoverflow_plus_ajax_submit',
+    );
+    $element['vote']['#attached']['js'][] = $path . '/js/stackoverflow_plus.ajax.js';
+  }
+
+  // Add validation function that considers a 0 value as empty.
+  $element['#element_validate'] = array('stackoverflow_plus_validate');
+
+  return $element;
+}
+
+
+
+/**
+ * Helper function to get the correct default value for a stackoverflow_plus element.
+ *
+ * @param $element
+ *   The stackoverflow_plus element
+ * @return
+ *   The default value for the element.
+ */
+function _stackoverflow_plus_get_element_default_value($element) {
+  if (isset($element['#default_value'])) {
+    $default_value = $element['#default_value'];
+  }
+  else {
+    $default_value = $element['#values']['user'];
+  }
+  
+  return $default_value;
+}
+
+
+/**
+ * An #element_validate function for "fivestar" elements.
+ */
+function stackoverflow_plus_validate($element, &$form_state) {
+  if ($element['#required'] && (empty($element['#value']) || $element['#value'] == '-')) {
+    form_error($element, t('!name field is required.', array('!name' => $element['#title'])));
+  }
+}

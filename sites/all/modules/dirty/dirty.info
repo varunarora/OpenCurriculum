@@ -1,0 +1,9 @@
+;$Id$
+
+name = Dirty people
+description = A custom Open Curriculum module to manage resources associated with a node
+package = Open Curriculum Custom
+core = 7.x
+
+files[] = dirty.module
+files[] = dirty.install

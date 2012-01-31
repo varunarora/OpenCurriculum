@@ -1,0 +1,335 @@
+blabla
+
+This page explains the '''image''' syntax when editing the wiki. You or another user must usually [[Help:Managing files|upload an image]] before you can use it on a page.
+ 
+== Syntax ==
+The full syntax for displaying an image is:
+  [[File:{file_name}|{options}]]
+Where options can be zero or more of the following, separated by pipes:
+* ''border'', ''frame'', ''thumb'', or ''frameless'': Controls how the image is formatted
+* ''left'', ''right'', ''center'', ''none'': Controls the alignment of the image within a text
+* ''baseline'', ''sub'', ''super'', ''top'', ''text-top'', ''middle'', ''bottom'', ''text-bottom'': Controls the vertical alignment of the image within a text
+* ''{width} px'': Resizes the image to the given width in pixels
+* ''{width}x{height}px'': Resizes the image to fit within the given width and height in pixels; it is possible to specify only the height by writing ''x{height}px''
+** ''Note that the image will always retain its aspect ratio.''
+*  ''link={destination}'': Allows to link to an arbitrary title, URL or just nowhere ({{mediawiki|rev:41727|1.14+}})
+** ''link= '': Will display an image without link, e.g. <nowiki>[[</nowiki><code>File:Example|20px|link=Help:Images]]</code> → [[Image:Example|20px|link=Help:Images]].
+** ''Note that ''link'' cannot be used in conjunction with ''thumb'' as thumb is always meant to link to the larger version of the image.  In addition, ''link'' cannot be used with ''frame''.''
+* ''alt={alternative text}'': For changing the alternative text (''alt=""'') of an image ({{mediawiki|rev:41837|1.14+}})
+* Special cases:
+** ''page=1'': Displays the specified page when showing a djvu or pdf file
+
+The options can be given in any order. If the given options conflict each other, the latter is applied, except for the format options, where the options take the priority in the order of ''frame'', ''thumb'', and ''frameless'' and/or ''border''.
+
+If a parameter does not match any of the other possibilities, it is assumed to be the caption text.  Caption text shows below the image in ''thumb'' and ''frame'' formats and as mouseover-text in ''border'', ''frameless'' or omitted.  Caption text in ''thumb'' and ''frame'' can contain wiki links and other formatting.  In the other options, wiki-formatting will not work though transclusion will.
+
+If no caption text is supplied, a caption is automatically created showing the file name.  To completely remove the caption, set it to <nowiki><span title=""></span></nowiki>. For example, <nowiki>[[File:Example|20px|<span title=""></span>]]</nowiki> → [[File:Example|20px|<span title=""></span>]].
+
+== Format ==
+The following table shows the effect of all available formats.
+
+{| class="wikitable plainlinks"
+|-
+!Description
+!You type
+!You get
+|-
+|no format specified
+|<code>... text text text
+[[File:example|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|caption]] text text text text text text text text text text text text text text text text text text text text text text text 
+|-
+|border results in a very small gray border
+|<code>... text text text
+[[File:example|border|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|border|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|frame
+|<code>... text text text
+[[File:example|frame|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|frame|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|thumb
+|<code>... text text text
+[[File:example|thumb|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|thumb|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|frameless, like thumbnail, respect user preferences for image width but without border and no right float
+|<code>... text text text
+[[File:example|frameless|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|frameless|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|frameless and border
+|<code>... text text text
+[[File:example|frameless|border|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|frameless|border|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|internal link
+|<code>... text text text
+[[File:example|link=Main Page|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|link=Main Page|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|external link
+|<code>... text text text
+[[File:example|link=http://wikipedia.org|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|link=http://wikipedia.org|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|no link (external or file page)
+|<code>... text text text
+[[File:example|link=|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|link=|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|}
+
+
+When the height of an image in thumbnail is bigger than its width and you find it too outstanding, you may try the option <code>upright</code>, which will try to adjust its size to more desirable size.
+
+Note that by writing <code>thumb={filename}</code>, you can use a different image for the thumbnail.
+
+== Alignment ==
+Note that when using <code>frame</code> or <code>thumb</code>, the default alignment will be <code>right</code>.
+
+{| class="wikitable"
+!Description
+!You type
+!You get
+|-
+|'''no alignment specified''', or default alignment
+|<code>... text text text
+[[File:example|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|caption]] text text text text text text text text text text text text text text text text text text text text text text text 
+|-
+|specify alignment as '''none'''
+|<code>... text text text
+[[File:example|none|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|none|caption]] text text text text text text text text text text text text text text text text text text text text text text text
+|-
+|center
+|<code>... text text text
+[[File:example|center|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|center|caption]] text text text text text text text text text text text text text text text text text text text text text text text 
+|-
+|left
+|<code>... text text text
+[[File:example|left|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|left|caption]] text text text text text text text text text text text text text text text text text text text text text text text 
+|-
+|right
+|<code>... text text text
+[[File:example|right|caption]]
+text text text ...</code>
+|text text text text text text text text text text text text text text text text text text text text text text text [[File:example|right|caption]] text text text text text text text text text text text text text text text text text text text text text text text 
+|}
+
+=== Vertical alignment ===
+ text text <nowiki>[[</nowiki>File:Example|20px]]
+ text text <nowiki>[[</nowiki>File:Example|20px|baseline]]
+ text text <nowiki>[[</nowiki>File:Example|20px|sub]]
+ text text <nowiki>[[</nowiki>File:Example|20px|super]]
+ text text <nowiki>[[</nowiki>File:Example|20px|text-top]]
+ text text <nowiki>[[</nowiki>File:Example|20px|middle]]
+ text text <nowiki>[[</nowiki>File:Example|20px|bottom]]
+ text text <nowiki>[[</nowiki>File:Example|20px|text-bottom]]
+
+results in (the text is underlined to show the result more clearly)
+
+<u>text text [[File:Example|20px]]
+text text [[File:Example|20px|baseline]]
+text text [[File:Example|20px|sub]]
+text text [[File:Example|20px|super]]
+text text [[File:Example|20px|text-top]]
+text text [[File:Example|20px|middle]]
+text text [[File:Example|20px|bottom]]
+text text [[File:Example|20px|text-bottom]]</u>
+
+== Size and Frame ==
+Among different formats, the effect of the size parameter may be different, as shown below.
+
+* When the format is not specified, or only <code>border</code>ed, the size can be both reduced and enlarged.
+* An image with <code>frame</code> always ignores the size specification.
+* The size of an image with <code>thumb</code> and <code>frameless</code> can be reduced, but can not be enlarged beyond the original size of the image.
+
+For how it appears when its size is not specified, see [[#Format|Format]] section above.
+
+{| class="wikitable"
+!Format!!Reduced!! Enlarged
+|-
+|(not specified)
+|
+<code>
+[[File:Example|50px]]
+</code>
+|[[File:Example|50px]]
+|-
+|border
+|
+<code>
+[[File:Example|border|50px]]
+</code>
+|[[File:Example|border|50px]]
+|-
+|frame
+|
+<code>
+[[File:Example|frame|50px]]
+</code>
+|[[File:Example|frame|50px]]
+|-
+|thumb
+|
+<code>
+[[File:Example|thumb|50px]]
+</code>
+|[[File:Example|thumb|50px]]
+|-
+|frameless
+|
+<code>
+[[File:Example|frameless|50px]]
+</code>
+|[[File:Example|frameless|50px]]
+|}
+
+== Stopping text flow ==
+On occasion it is desirable to stop text from flowing around an image.  Depending on the web browser's screen resolution and such, text flow on the right side of an image may cause a section header (for instance, <nowiki>== My Header ==</nowiki>) to appear to the right of the image, instead of below it, as a user may expect.  The text flow can be stopped by placing '''<nowiki><br style="clear: both" /></nowiki>''' before the text that should start after the image.
+
+== Gallery of images ==
+It's easy to make a gallery of '''thumbnails only''', not other images, with the <nowiki><code><gallery></code></nowiki> tag. The syntax is:
+ <nowiki><gallery></nowiki>
+ File:Image Name.ext|caption
+ File:Image Name.ext|caption
+ {...}
+ </gallery>
+
+Note that the image code is not enclosed in brackets when enclosed in gallery tags. 
+
+Captions are optional, and may contain wiki links or other formatting.
+
+for example:
+ <nowiki><gallery></nowiki>
+ File:Example|Item 1
+ File:Example|a link to <nowiki>[[</nowiki>Help:Contents]]
+ File:Example
+ File:Example
+ File:Example| <nowiki>''italic caption''</nowiki>
+ File:Example|on page "<nowiki>{{</nowiki>PAGENAME}}"
+ </gallery>
+is formatted as:
+<gallery>
+File:Example|Item 1
+File:Example|a link to [[Help:Contents]]
+File:Example
+File:Example
+File:Example|''italic caption''
+File:Example|on page "{{PAGENAME}}"
+</gallery>
+
+===Parameters===
+The gallery tag itself takes several additional parameters:
+<pre><gallery {parameters}>
+{images}
+</gallery></pre>
+* <code>caption={caption}</code>: sets a caption on the gallery.
+* <code>widths={width}px</code>: sets the widths of the images. ''Note the plural, width'''s'''''
+* <code>heights={heights}px</code>: sets the (max) heights of the images.
+* <code>perrow={integer}</code>: sets the number of images per row.
+
+Example:
+
+Coding:
+<pre>
+<gallery widths=60px heights=60px perrow=7 caption="sunflowers are groovy">
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+</gallery>
+</pre>
+
+Result:
+<gallery widths=60px heights=60px perrow=7 caption="sunflowers are groovy">
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+File:Example
+</gallery>
+
+== Links ==
+=== Link to description page ===
+If you put a colon (<code>:</code>) before <code>{{ns:image}}:</code>, the image will not be embedded and the link will lead to the description page of the file.
+
+ <nowiki><code>[[:File:Example]]</code></nowiki>
+ <nowiki><code>[[:File:Example|Sunflowers]]</code></nowiki>
+
+results in
+
+[[:File:Example]]
+[[:File:Example|Sunflowers]]
+
+=== Link to another page ===
+This will make a 50px width picture with a link to the page [[Mediawiki test - links]]:
+
+ <nowiki><code>[[File:Example|50px|link=Mediawiki test - links]]</code></nowiki>
+
+[[File:Example|50px|link=Mediawiki test - links]]
+
+=== Link directly to file ===
+You can use the pseudo-namespace “Media” to link directly to a file, bypassing the description page.
+
+ <nowiki>[[Media:Example]]</nowiki>
+ <nowiki>[[Media:Example|Sunflowers]]</nowiki>
+
+results in
+[[Media:Example]]
+[[Media:Example|Sunflowers]]
+
+You can also use:
+ <nowiki>[[Special:FilePath/Example]]</nowiki>
+
+which can be used to link to a potential file, even if it doesn't exist. This results in:
+
+[[Special:FilePath/Example]]
+
+
+You can also use:
+ <nowiki>[[FILEPATH:Example]]</nowiki>
+
+which generates an external URL to the file inline: [[FILEPATH:Example]]
+
+== Requisites ==
+Before using images in your page, the system administrator of your wiki must have enabled file uploads and a user has to upload the file. System administrators may also set the wiki to accept files from foreign repositories, such as the [http://commons.wikimedia.org/wiki/Main_Page Wikimedia Commons]. For server side image resizing it is necessary to have a scaler configured (such as GD2, ImageMagick, etc.).
+
+== Files at other websites == 
+You can link to an external file available online using the same syntax used for linking to an external web page. 
+<pre>[http://url.for/some/image.png]</pre>
+Or with different text:
+<pre>[http://url.for/some/image.png link text here]</pre>
+If it is enabled on your wiki (see $wgAllowExternalImages), you can also embed external images. To do that, simply insert the image's url:
+<pre>http://url.for/some/image.png</pre>
+
+[[Category:Help|Images]]
+

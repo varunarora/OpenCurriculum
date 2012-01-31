@@ -1,0 +1,152 @@
+There are four sorts of links in MediaWiki: 
+# '''[[#Internal links|internal links]]''' to other pages in the wiki
+# '''[[#External links|external links]]''' to other websites
+# '''[[#Interwiki links|interwiki links]]''' to other websites registered to the wiki in advance
+# '''[[#Interlanguage links|Interlanguage links]]''' to other websites registered as other language versions of the wiki
+
+== Internal links ==
+To add an internal link, enclose the name of the page you want to link to in double square brackets. When you save the page, you'll see the new link pointing to your page. If the page exists already it is displayed in blue, if it does not, in red.
+Selflinks to the current page are not transformed in URLs but displayed in bold.
+(If you really want to link to the current page, use an anchor (see below), or <nowiki>[[#top|current page]]</nowiki> which always links to the top.)
+
+The first letter of the target page is automatically capitalized, unless otherwise set by the admins, and spaces are represented as underscores (typing an underscore in the link will have a similar effect as typing a space, but is not recommended, since the underscore will also be shown in the text).
+
+{| border="1" class="wikitable"
+!Description
+!You type
+!You get
+|-
+|Internal link
+|<pre>[[Main Page]]</pre>
+|[[Main Page]]
+|-
+|Piped link 
+|<pre>[[Main Page|different text]]</pre>
+|[[Main Page|different text]]	
+|-
+|Shortened sort-of-piped link 
+|<pre>[[Internationalisation]]s</pre>
+|[[Internationalisation]]s
+|-
+|Redirect
+|<pre>#REDIRECT [[Main Page]]</pre>
+See also [[Help:Redirects]]
+| &rarr; [[Main Page]]
+|-
+|Internal link to an anchor
+|<pre>[[#See also]]</pre>
+[[Help:Formatting|Section headings]] and the [[#top|top]] of the page are automatically anchored.
+|[[#See also]]
+|-
+|Internal link to an anchor at another page
+|<pre>[[Help:Images#See also]]</pre>
+|[[Help:Images#See also]]
+|-
+|Internal link to the current page's talk page
+|<pre>[[{{TALKPAGENAME}}|Discussion]]</pre>
+See also [[Help:Magic_words#Page_names]]
+|[[{{TALKPAGENAME}}|Discussion]]
+|-
+|Internal link to a subpage
+|<pre>[[/example]]</pre>
+Shortcut for <nowiki>[[Help:Links/example]]</nowiki>. See also [[Help:Subpages]].
+|[[/example]]
+|-
+|Internal link to a subpage without the leading slash
+|<pre>[[/example/]]</pre>
+Shortcut for <nowiki>[[Help:Links/example|example]]</nowiki>.
+|[[/example/]]
+|-
+|Internal link to a category page
+|<pre>[[:Category:Help]]</pre>
+See also [[Help:Categories]]
+|[[:Category:Help]]
+|-
+|Internal link to an image or a file of other types
+|<pre>[[media:example.jpg]]
+
+[[media:example.pdf]]</pre>
+See also [[Help:Images]]
+|[[media:example.jpg]]
+
+[[media:example.pdf]]
+|-
+|Internal link to the user's user page
+|<pre>[[Special:MyPage]]</pre>
+|[[Special:MyPage]]
+|}
+
+== External links ==
+{| border="1" class="wikitable"
+!style="width:15%"|Description
+!style="width:45%"|You type
+!style="width:40%"|You get
+|-
+|External link
+|<tt><nowiki>http://mediawiki.org</nowiki></tt>
+|http://mediawiki.org
+|-
+|External link with different label
+|<tt><nowiki>[http://mediawiki.org MediaWiki]</nowiki></tt>
+|[http://mediawiki.org MediaWiki]
+|-
+|Numbered external link
+|<tt><nowiki>[http://mediawiki.org]</nowiki></tt>
+|[http://mediawiki.org]
+|-
+|External links with file icons
+|<tt><nowiki>
+[http://en.wikipedia.org/wiki/.avi video]
+[http://en.wikipedia.org/wiki/.ogg sound]
+[http://en.wikipedia.org/wiki/.pdf document]
+</nowiki></tt>
+<small>Currently supported extensions: ogm, avi, mpeg, mpg (video); ogg, mid, midi, mp3, wav, wma (audio); and pdf (document)</small>
+|
+[http://en.wikipedia.org/wiki/.avi video]<br/>
+[http://en.wikipedia.org/wiki/.ogg sound]<br/>
+[http://en.wikipedia.org/wiki/.pdf document]<br/>
+|-
+|External link to the same host
+|<tt><nowiki>http://{{SERVERNAME}}/pagename</nowiki></tt>
+|http://{{SERVERNAME}}/pagename
+|-
+|External link to other host passing the pagename
+|<tt><nowiki>http://google.com/search?q={{PAGENAMEE}}</nowiki></tt>
+|http://google.com/search?q={{PAGENAMEE}}
+|-
+|Mailto link
+|<tt><nowiki>[mailto:info@example.org email me]</nowiki></tt>
+|[mailto:info@example.org email me]
+|-
+|Mailto named with subject line and body
+|<tt><nowiki>[mailto:info@example.org?Subject=URL%20Encoded%20Subject&amp;body=Body%20Text info]</nowiki></tt>
+|[mailto:info@example.org?Subject=URL%20Encoded%20Subject&body=Body%20Text info]
+|}
+
+=== How to avoid auto-links ===
+By default, when you write a URL as is, it will be transformed to an external link.
+
+To avoid that effect, put the URL between <code><nowiki></code> tags as in:
+ <nowiki><nowiki>http://mediawiki.org</nowiki></nowiki>
+
+== Interwiki links ==
+Interwiki links are links with the internal link markup to a website registered in advance. For example, you can link to the Sunflower article on http://en.wikipedia.org by typing <code>[[wikipedia:Sunflower]]</code>, which will result in a link [[wikipedia:Sunflower]]. This is because <code>http://en.wikipedia.org/wiki/</code> is registered to your wiki by default with the prefix of <code>wikipedia</code>. ''This link may not work properly, if the admin of your wiki has changed the setting.'' Unlike internal links, interwiki links do not use page existence detection, so an interwiki link will appear blue even if the page does not exist on the remote wiki.
+
+Similar to internal page links, you can create piped links, with alternate link label, e.g. <code>[[wikipedia:Sunflower|big yellow flower]]</code>.
+
+Basically this is an abbreviation for longer URLs. A very similar link could be created as a normal external link by typing <code>[http://en.wikipedia.org/wiki/Sunflower Sunflower]</code>, but interwiki links allow you to type out an easy and compact link, almost as if you are linking to a page on your own wiki.
+
+=== Interlanguage links ===
+If your wiki has other language versions, you may find “interlanguage links” in the [[Help:Navigation#Sidebar|sidebar]], just below [[Help:Navigation#Toolbox|toolbox]] in the box named “{{lcfirst:{{int:otherlanguages}}}}.”
+
+Interlanguage links behave similar to interwiki links, except that they are listed in the sidebar. To create an interlanguage link from a page, just type <code>[[''language prefix'':pagename]]</code> wherever you like in the page; the language prefix is the prefix specified at your wiki for the other language version (typically the [[wikipedia:ISO 639|ISO language code]]).
+
+If you want to make the interlanguage link to appear in the content of the page, you can add a colon before the language prefix, e. g.  <code>[[:en:Sunflower]]</code>.
+
+== See also ==
+* [[Help:Linked images|Linked images]]
+
+
+
+[[Category:Help|Links]]
+[[Category:Link|Links]]
