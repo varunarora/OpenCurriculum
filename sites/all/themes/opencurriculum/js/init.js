@@ -53,5 +53,5 @@ jQuery(function($){
             loading_text: "loading tweets..."
         });
     
-
+ 	Shadowbox.init();
 });

@@ -73,6 +73,12 @@ if (isset($account->mail)):
 <tr><td>Email</td><td><a href="mailto:<?php print str_replace('@', '(at)', str_replace('.', '(dot)', $account->mail)); ?>"><img src="../sites/default/image.php?email=<?php print $account->mail; ?>" /></a></td></tr>
 <?php endif; ?>
 
+<tr><td>Role</td><td><?php if(array_search('moderator', $account->roles)) { ?>
+	<span class="label success"><?php print "Moderator"; ?></span>
+	<?php } else { ?> <span class="label important"> 
+		<?php print "Contributor"; ?></span> <?php } ?> 
+</td></tr>
+
 <?php if (isset($field_personalweb)): ?>
 <tr><td>Website</td><td><?php print render($user_profile['field_personalweb']); ?></td></tr>
 <?php endif; ?>

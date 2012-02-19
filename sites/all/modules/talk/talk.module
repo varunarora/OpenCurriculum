@@ -205,6 +205,7 @@ function talk_form_node_type_form_alter(&$form, $form_state, $form_id) {
  * Changes the destination to the talk page after posting a comment.
  */
 function talk_comment_hijack($form, &$form_state) {
+	
   if (is_array($form_state['redirect'])) {
     $form_state['redirect'][0] .= '/discussion';
   }

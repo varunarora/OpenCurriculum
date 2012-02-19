@@ -157,21 +157,38 @@
 </div>
 
 <div id="right-panel">
+<h1 id="home-title">Free &amp; high-quality K-12 textbooks. <br/><span class="slider-green">Created by you.</span></h1>
+<p/>
+<div id="project-info" style="overflow: auto">
+	<div id="project-brief">OpenCurriculum is a project aimed at creating the first global free K-12 school curriculum created by members of community like you.<p/>We are hope to build a listing of education resources associated with textbook chapters that are sorted, ranked and reviewed by you.<p/>All this, ready for print and mobile &amp; tablet devices!<p style="margin-top: 20px"/>
 
-
+		<a href="user/register" class="classy-button">Get started now &#187;</a> <a href="about" class="classy-button">Learn more &#187;</a>
+		</div>
+	<div id="project-image"><img src="<?php print path_to_theme();?>/images/oer_refl.png"></div>
+</div>
 <!--http://cssglobe.com/post/5780/easy-slider-17-numeric-navigation-jquery-slider -->
+
+<!--
 <div id="slider">
 	<ul>
 
 
 	<li><div><span id="slider_title"><h2>An initiative to create the world's first full free and open source global K-12 curriculum</h2>Free and open source breeds open innovation, and that is what we believe in. Every user contributed piece of information, if not explicitly licensed otherwise, is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.</span><img src="<?php print path_to_theme();?>/images/cc_refl.png"></div></li>
 	<li><div><span id="slider_title"><h2>Creating the world's largest listing of Open Educational Resources, sorted and ranked</h2>Each chapter, book, and subject can now have OERs related directly to them, which are accessible using several filters, such as rating, sorting, views, stars, license, etc.</span><img src="<?php print path_to_theme();?>/images/oer_refl.png"></div></li>
-	<!--<li><h2>Applying the 21st century learning skills to produce meaningful learning content</h2></li>-->
+	<li><h2>Applying the 21st century learning skills to produce meaningful learning content</h2></li>
 	<li><div><span id="slider_title"><h2>Supporting ICT for Education projects such as One Laptop Per Child and Digital Study Hall</h2></span><img src="<?php print path_to_theme();?>/images/olpcdsh.png"></div></li>
 	</ul>
 
 </div>
+-->
+
+<div id="hot"><h2>Hot topics &amp; chapters</h2><p/>
+      <?php print render($page['recent_content']); ?>
+</div>
+<div id="article-feed">
+	  <h3 style="margin-top: 0px;">Posts from OC Blog</h3>
       <?php print render($page['content']); ?>
+      </div>
 </div>
 
 </div>

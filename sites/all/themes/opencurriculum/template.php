@@ -11,16 +11,17 @@ function opencurriculum_preprocess_html(&$variables) {
   drupal_add_css(path_to_theme() . '/css/ie6.css', array('group' => CSS_THEME, 'browsers' => array('IE' => 'IE 6', '!IE' => FALSE), 'preprocess' => FALSE));
 
   drupal_add_css(path_to_theme() . '/css/jquery-ui-1.8.6.custom.css');
-  drupal_add_css('http://fonts.googleapis.com/css?family=Satisfy'); 
+  drupal_add_css('http://fonts.googleapis.com/css?family=Asap:700'); 
+  drupal_add_css(path_to_theme() . '/css/shadowbox.css');
 /*  drupal_add_css(path_to_theme() . '/css/mscarousel.css');
 */
-
+  drupal_add_js(path_to_theme() .'/js/shadowbox.js'); 
   drupal_add_js(path_to_theme() .'/js/jquery.tweet.js');
   drupal_add_js(path_to_theme() .'/js/easySlider1.7.js');
   drupal_add_js(path_to_theme() .'/js/init.js');
   drupal_add_js(path_to_theme() .'/js/jquery-ui.min.js');
   drupal_add_js(path_to_theme() .'/js/jquery.tools.min.js');
-  
+
 }
 
 /**
@@ -176,6 +177,10 @@ function opencurriculum_theme($existing, $type, $theme, $path){
 }
 
 
+function opencurriculum_form_book_node_form_alter(&$form, &$form_state, $form_id){
+	$form['actions']['submit']['#value'] = 'Submit';
+}
+
 /*
 function opencurriculum_form_user_login_block_alter(&$form, &$form_state) {
 $form['actions']['submit']['#value'] = 'Sign in';
@@ -184,3 +189,58 @@ $form['pass']['#title_display'] = 'invisible';
 $form['openid_links']['#type'] = 'hidden';
 $form['links']['#type'] = 'hidden';
 }*/
+
+function opencurriculum_menu_local_task($variables){
+  $link = $variables['element']['#link'];
+  $link_text = $link['title'];
+
+  
+  $path = $variables['element']['#link']['path'];
+  
+  $id = '';
+  
+  switch ($path) {
+      case 'node/%/edit':
+          $id = 'tab-edit';
+          break;
+      case 'node/%/discussion':
+          $id = 'tab-discussion';
+          break;		  
+      case 'node/%/revisions':
+          $id = 'tab-revisions';
+          break;
+	  case 'node/%/resources':
+          $id = 'tab-resources';
+          break;
+	  case 'node/%/view':
+          $id = 'tab-current';
+          break;			        
+      default:
+          
+          break;
+  }
+  
+  if (!empty($variables['element']['#active'])) {
+    // Add text to indicate active tab for non-visual users.
+    $active = '<span class="element-invisible">' . t('(active tab)') . '</span>';
+
+    // If the link does not contain HTML already, check_plain() it now.
+    // After we set 'html'=TRUE the link will not be sanitized by l().
+    if (empty($link['localized_options']['html'])) {
+      $link['title'] = check_plain($link['title']);
+    }
+    $link['localized_options']['html'] = TRUE;
+    $link_text = t('!local-task-title!active', array('!local-task-title' => $link['title'], '!active' => $active));
+	
+  }
+
+  $link['localized_options']['attributes'] = array('id' => $id);
+  
+  $classes = array();
+  $classes[] = !empty($variables['element']['#active']) ? 'active' : '';
+  $classes[] = ($path == 'node/%/revisions' || $path == 'node/%/edit') ? 'tab-right': '';
+  
+
+  
+  return '<li class="' . implode(' ', $classes) . '" >' . l($link_text, $link['href'], $link['localized_options']) . "</li>\n";
+}

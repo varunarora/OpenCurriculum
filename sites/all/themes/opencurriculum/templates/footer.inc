@@ -62,7 +62,11 @@
 		<ul>
 			<li><?php print l("Mathematics", 'mathematics'); ?></li>
 			<li><?php print l("Science", 'science'); ?></li>
-			<li><?php print l("Computer Science", 'computer-science'); ?></li>
+			<!--<li><?php print l("Computer Science", 'computer-science'); ?></li>-->
+			<li><?php print l("English", "english"); ?></li>
+			<li><?php print l("Geography", "geography"); ?></li>
+			<li><?php print l("Government & Civics", "government-civics"); ?></li>
+			<li><?php print l("History", "history"); ?></li>
 		</ul>
 	</div>
 	

@@ -251,6 +251,8 @@ function fivestar_validate_target($entity_type, $id, $tag, $uid = NULL) {
   }
 
   $access = module_invoke_all('fivestar_access', $entity_type, $id, $tag, $uid);
+
+  
   foreach ($access as $result) {
     if ($result == TRUE) {
       return TRUE;

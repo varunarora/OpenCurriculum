@@ -1,0 +1,14 @@
+; $Id: messaging_htmlmail.info,v 1.1.2.1 2011/01/18 00:41:36 jareyero Exp $
+name = HTML Mail
+description = Mail Sending Method: HTML Multipart e-mails with MimeMail
+package = "Messaging"
+dependencies[] = messaging
+dependencies[] = messaging_mail
+core = 7.x
+files[] = messaging_htmlmail.inc
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha1"
+core = "7.x"
+project = "messaging"
+datestamp = "1295315244"
+

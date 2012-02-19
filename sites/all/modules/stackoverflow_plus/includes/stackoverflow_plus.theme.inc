@@ -85,7 +85,7 @@ function theme_stackoverflow_plus_preview($variables) {
 }
 
 function theme_stackoverflow_plus_preview_wrapper($variables) {
-  return '<div class="stackoverflow_plus-preview stackoverflow_plus-preview-'. $variables['type'] .'">'. $variables['content'] .'</div>';
+  return '<div class="stackoverflow-plus-preview stackoverflow-plus-preview-'. $variables['type'] .'">'. $variables['content'] .'</div>';
 }
 
 /**
@@ -160,7 +160,7 @@ function theme_stackoverflow_plus_select($variables) {
   $element = $variables['element'];
   element_set_attributes($element, array('id', 'name', 'size'));
   _form_set_class($element, array('form-select'));
-  return '<select' . drupal_attributes($element['#attributes']) . '>' . form_select_options($element) . '</select>';
+  return '<select' . drupal_attributes($element['#attributes']) . '>' . form_select_options($element) . '</select><h1 class="currentCount">' . $element['#default_value']. '</h1>';
 }
 /**
  * Display a plain HTML view-only version of the widget with a specified rating.
@@ -173,7 +173,7 @@ function theme_stackoverflow_plus_select($variables) {
  *   Allows multiple ratings per node.
  * @return
  *   A themed HTML string representing the star widget.
- */
+ */ 
 function theme_stackoverflow_plus_static($variables) {
   $rating  = $variables['rating'];
   $stars = $variables['stars'];
@@ -194,7 +194,7 @@ function theme_stackoverflow_plus_static($variables) {
     $prev_star_value = ceil((100/$stars) * ($n-1));
     $zebra = ($n % 2 == 0) ? 'even' : 'odd';
     $first = $n == 1 ? ' star-first' : '';
-    $last = $n == $stars ? ' star-last' : '';
+    $last = $n == $stars ? ' star-blast' : '';
     $output .= '<div class="star star-'. $n .' star-'. $zebra . $first . $last .'">';
     if ($rating < $star_value && $rating > $prev_star_value) {
       $percent = (($rating - $prev_star_value) / ($star_value - $prev_star_value)) * 100;
@@ -209,7 +209,8 @@ function theme_stackoverflow_plus_static($variables) {
     if ($n == 1)$output .= $numeric_rating;
     $output .= '</span></div>';
   }
-  $output .= '</div></div>';
+  
+  $output .= '<h1>0</h1></div></div>';
   return $output;
 }
 

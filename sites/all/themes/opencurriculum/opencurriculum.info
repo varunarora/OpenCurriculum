@@ -9,6 +9,7 @@ core = 7.x
 stylesheets[all][] = css/style.css
 
 regions[content] = Content
+regions[recent_content] = Recent Content
 regions[search] = Search
 
 regions[top] = Top 3-column span

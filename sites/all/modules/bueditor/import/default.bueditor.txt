@@ -13,10 +13,10 @@ edit-menu-description',
       'title' => 'Insert/edit image',
       'content' => 'js:
 var form = [
- {name: \'src\', title: \'Image URL\', required: true, suffix: E.imce.button(\'attr_src\')},
+ {name: \'src\', title: \'Image URL*\', required: true, suffix: E.imce.button(\'attr_src\')},
  {name: \'width\', title: \'Width x Height\', suffix: \' x \', getnext: true, attributes: {size: 3}},
  {name: \'height\', attributes: {size: 3}},
- {name: \'alt\', title: \'Alternative text\', required: true}
+ {name: \'alt\', title: \'Image title (alt)*\', required: true}
 ];
 E.tagDialog(\'img\', form, {title: \'Insert/edit image\'});',
       'icon' => 'image.png',

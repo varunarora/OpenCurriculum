@@ -355,95 +355,96 @@ function imagepicker_menu() {
     'type'             => MENU_CALLBACK,
     'file'             => 'imagepicker.admin.inc'
   );
-  // My imagepicker
-  $items['user/%imagepicker_uid/imagepicker'] = array(
-    'title'            => 'My images',
-    'description'      => 'Manage your imagepicker files.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1),
-    'access callback'  => 'imagepicker_access_user_pages',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => 0
-  );
-  $items['user/%imagepicker_uid/imagepicker/upload'] = array(
-    'title'            => 'Upload',
-    'description'      => 'Upload images.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3),
-    'access callback'  => 'imagepicker_access_user_pages',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -9
-  );
-  $items['user/%imagepicker_uid/imagepicker/images/browse'] = array(
-    'title'            => 'Browse',
-    'description'      => 'Browse your imagepicker files.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3, 4, 5),
-    'access callback'  => 'imagepicker_access_user_pages',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -7
-  );
-  $items['user/%imagepicker_uid/imagepicker/images/browseadmin'] = array(
-    'title'            => 'List',
-    'description'      => 'List your imagepicker files.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3, 4, 5),
-    'access callback'  => 'imagepicker_access_user_pages',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -6
-  );
-  // groups
-  $items['user/%imagepicker_uid/imagepicker/images/browse_public'] = array(
-    'title'            => 'Browse Public',
-    'description'      => 'Browse public imagepicker files.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3, 4, 5),
-    'access callback'  => 'imagepicker_access_user_public',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -5
-  );
-  $items['user/%imagepicker_uid/imagepicker/groups/browse'] = array(
-    'title'            => 'Groups',
-    'description'      => 'Manage your imagepicker groups.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3, 4, 5),
-    'access callback'  => 'imagepicker_access_user_groups',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -4
-  );
-  $items['user/%imagepicker_uid/imagepicker/stats'] = array(
-    'title'            => 'Stats',
-    'description'      => 'View your imagepicker statistics.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3),
-    'access callback'  => 'imagepicker_access_user_groups',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -3
-  );
-  $items['user/%imagepicker_uid/imagepicker/config'] = array(
-    'title'            => 'Config',
-    'description'      => 'Administer user configuration.',
-    'page callback'    => 'imagepicker_user_page',
-    'page arguments'   => array(1, 3),
-    'access callback'  => 'imagepicker_access_user_config',
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'imagepicker.user.inc',
-    'weight'           => -2
-  );
-  // multitask
-  $items['user/%imagepicker_uid/imagepicker/multitask'] = array(
-    'title' => 'Bulk Operations',
-    'page callback' => 'imagepicker_multitask',
-    'access callback'  => 'imagepicker_access_user_pages',
-    'type' => MENU_CALLBACK,
-  );
+// 
+  // // My imagepicker
+  // $items['user/%imagepicker_uid/imagepicker'] = array(
+    // 'title'            => 'My images',
+    // 'description'      => 'Manage your imagepicker files.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(3),
+    // 'access callback'  => 'imagepicker_access_user_pages',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => 0
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/upload'] = array(
+    // 'title'            => 'Upload',
+    // 'description'      => 'Upload images.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3),
+    // 'access callback'  => 'imagepicker_access_user_pages',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -9
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/images/browse'] = array(
+    // 'title'            => 'Browse',
+    // 'description'      => 'Browse your imagepicker files.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3, 4, 5),
+    // 'access callback'  => 'imagepicker_access_user_pages',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -7
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/images/browseadmin'] = array(
+    // 'title'            => 'List',
+    // 'description'      => 'List your imagepicker files.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3, 4, 5),
+    // 'access callback'  => 'imagepicker_access_user_pages',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -6
+  // );
+  // // groups
+  // $items['user/%imagepicker_uid/imagepicker/images/browse_public'] = array(
+    // 'title'            => 'Browse Public',
+    // 'description'      => 'Browse public imagepicker files.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3, 4, 5),
+    // 'access callback'  => 'imagepicker_access_user_public',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -5
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/groups/browse'] = array(
+    // 'title'            => 'Groups',
+    // 'description'      => 'Manage your imagepicker groups.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3, 4, 5),
+    // 'access callback'  => 'imagepicker_access_user_groups',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -4
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/stats'] = array(
+    // 'title'            => 'Stats',
+    // 'description'      => 'View your imagepicker statistics.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3),
+    // 'access callback'  => 'imagepicker_access_user_groups',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -3
+  // );
+  // $items['user/%imagepicker_uid/imagepicker/config'] = array(
+    // 'title'            => 'Config',
+    // 'description'      => 'Administer user configuration.',
+    // 'page callback'    => 'imagepicker_user_page',
+    // 'page arguments'   => array(1, 3),
+    // 'access callback'  => 'imagepicker_access_user_config',
+    // 'type'             => MENU_LOCAL_TASK,
+    // 'file'             => 'imagepicker.user.inc',
+    // 'weight'           => -2
+  // );
+  // // multitask
+  // $items['user/%imagepicker_uid/imagepicker/multitask'] = array(
+    // 'title' => 'Bulk Operations',
+    // 'page callback' => 'imagepicker_multitask',
+    // 'access callback'  => 'imagepicker_access_user_pages',
+    // 'type' => MENU_CALLBACK,
+  // );
 
   return $items;
 }

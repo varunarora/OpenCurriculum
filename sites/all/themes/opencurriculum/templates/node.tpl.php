@@ -96,6 +96,12 @@
     </div>
   <?php endif; ?>
 
+  
+  <?php if(isset($content['book_navigation'])) {
+	// Don't show the book navigation if this is a book	
+	$content['book_navigation'] = '';
+  } ?>
+
   <div class="content clearfix"<?php print $content_attributes; ?>>
     <?php
       // We hide the comments and links now so that we can render them later.
@@ -115,7 +121,11 @@
     $links = render($content['links']);
 	
   ?>
+  
+  <?php if($type!='book'):?>
   <?php print render($content['comments']); ?>
+  <?php endif; ?>
+  
   <?php if ($links): ?>
    
     <div class="link-wrapper">

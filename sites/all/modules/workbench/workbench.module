@@ -36,7 +36,7 @@ function workbench_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'workbench.pages.inc',
   );
-  $items['admin/workbench/create'] = array(
+  $items['admin/workbench/createe'] = array(
     'title' => 'Create content',
     'page callback' => 'workbench_create',
     'access arguments' => array('access workbench'),
@@ -44,6 +44,21 @@ function workbench_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'workbench.pages.inc',
   );
+  
+  // My imagepicker
+  $items['admin/workbench/imagepicker'] = array(
+    'title'            => 'My images',
+    'description'      => 'Manage your imagepicker files.',
+    'page callback'    => 'imagepicker_user_page',
+    'page arguments'   => array(3),
+    'access callback'  => 'imagepicker_access_user_pages',
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'imagepicker.user.inc',
+    'file path'		   => drupal_get_path('module', 'imagepicker'),
+    'weight'           => -15
+  );
+  
+  
   return $items;
 }
 

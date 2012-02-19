@@ -47,7 +47,7 @@ function workbench_moderation_node_history_view($node) {
   global $user;
 
   // Page title.
-  drupal_set_title(t('@title History', array('@title' => $node->title)), PASS_THROUGH);
+  drupal_set_title(t('@title Moderation', array('@title' => $node->title)), PASS_THROUGH);
 
   // Alert if there is no live node
   if (!isset($node->workbench_moderation['published'])) {

@@ -42,7 +42,7 @@ function oers_menu() {
 	  'page callback' => 'oers_diffs_overview', 
 	  'page arguments' => array(1), 
 	  'access arguments' => array(1), 
-	  'access callback' => 'oers_access', 
+	  'access callback' => 'oers_access',
 	);
 
 	$items['oers/login'] = array(
@@ -80,6 +80,9 @@ function oers_menu_alter(&$items) {
   $items['node/%node/view']['title callback'] = 'oers_view_tab_title';
   $items['node/%node/view']['title arguments'] = array(1);
 
+  // Override the node view menu item title.
+  $items['admin/workbench']['title callback'] = 'oers_workbench_title';
+
   // Redirect node/%node/revisions
   $items['node/%node/revisions']['page callback'] = 'oers_diffs_overview';
   $items['node/%node/revisions']['page arguments'] = array(1);
@@ -113,11 +116,15 @@ function oers_view_tab_title($node) {
   // Is there a published revision?
   $state = $node->workbench_moderation;
   if (!empty($state['published'])) {
-    return t('Stable');
+    return t('Current version');
   }
   return t('View draft');
 }
 
+
+function oers_workbench_title(){
+	return 'My content';
+}
 
 function oers_listing($node) {
 	$result = db_select('field_data_field_bookpage', 'f') -> fields('f', array('entity_id')) -> condition('field_bookpage_nid', $node -> nid) -> execute();
@@ -148,7 +155,7 @@ function oers_listing($node) {
 		$license = NULL;
 		$date = date('dS M, Y', $entity->created);
 				
-		if (isset($entity->field_license[$language][0]['tid'])){
+		if (isset(taxonomy_term_load($entity->field_license[$language][0]['tid'])->field_image['und'])){
 			$license_obj = taxonomy_term_load($entity->field_license[$language][0]['tid'])->field_image['und'][0];
 			$license = image_style_url('thumbnail', $license_obj['uri']);
 		} 
@@ -236,7 +243,18 @@ function oers_form_book_node_form_alter(&$form, &$form_state, $form_id) {
 
 function oers_book_node_form_submit(&$form, &$form_state) {
   global $user;
-  if (!$user->uid==0) $form_state['redirect'] = array('node/' . $form_state['node'] -> nid . '/talk');
+  
+  $messages = drupal_get_messages();
+  //Replace only the "status" message, other messages should remain.
+  foreach($messages as $type => $message) {
+    if($type != 'status') {
+      drupal_set_message($message, $type);
+    }
+  }
+  
+  drupal_set_message(t('Your book page edits have been submitted to the moderators for review, and shall be published if approved!'));
+  
+  if (!$user->uid==0) $form_state['redirect'] = array('node/' . $form_state['node'] -> nid . '/revisions/' . /*(intval($form['vid']['#value'])+1)*/ workbench_moderation_node_current_load(node_load($form['nid']['#value']))->vid . '/view');
   else $form_state['redirect'] = array('oers/login', array('query' => array('destination' => 'node/' . $form_state['node'] -> nid . '/current-revision')));
 }
 
@@ -618,3 +636,18 @@ function oers_node_revisions_submit($form, &$form_state) {
   $form_state['redirect'] =  'node/'. $form_state['values']['nid'] .'/revisions/view/'. $old_vid .'/'. $new_vid;
 }
 
+function oers_node_prepare($node){
+	global $base_url;
+	/*$message = 'Before editing this book chapter, you may want to read the following guidelines on contribution:<br><ul><li>General guidelines for editing an eTextbook</li><li></li><li></li></ul>'*/;	
+	if ($node->type == 'book'){
+		drupal_set_message(t('Before editing this book chapter, you may want to read the following guidelines, to create very high quality contributions:<p/><ul><li><a href="'. $base_url .'/guidelines" target="_blank">General guidelines for editing an eTextbook</a></li><li><a href="discussion" target="_blank">Current discussions about @bookpage</a></li><li><a href="'. $base_url .'/21st-century-skills" target="_blank">21st Century learning skills</a> for the curriculum</li><li><a href="'. $base_url .'/learning-sciences" target="_blank">Learning science principles</a> for high-quality learning experiences in textbooks</li></ul>', array('@bookpage' => $node->title)), 'warning');
+	}
+}
+
+function oers_node_view($node, $view_mode, $langcode){
+	if ($node->type == 'book' && isset($node->workbench_moderation)){
+		if ($node->workbench_moderation['current']->published == 0){
+			$node->content['links']['#attributes']['class'][] = 'hidden';
+		}
+	}
+}

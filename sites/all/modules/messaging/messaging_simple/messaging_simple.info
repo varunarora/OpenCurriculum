@@ -1,0 +1,13 @@
+; $Id: messaging_simple.info,v 1.2.4.1.8.1 2011/01/18 00:41:37 jareyero Exp $
+name = Web messaging
+description = Sending Method: Show messages on user's page
+package = "Messaging"
+dependencies[] = messaging
+core = 7.x
+files[] = messaging_simple.inc
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha1"
+core = "7.x"
+project = "messaging"
+datestamp = "1295315244"
+

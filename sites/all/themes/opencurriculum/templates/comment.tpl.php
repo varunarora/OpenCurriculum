@@ -60,9 +60,17 @@
 ?>
 <div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
 		<?php 
-		$comment_author = user_load($content['comment_body']['#object']->uid);
-		$comment_author_name = $comment_author->field_name['und'][0]['safe_value'];
+		$uid = $content['comment_body']['#object']->uid;
+		$comment_author = user_load($uid);
+		
+		$language = $comment_author->language == ''? 'und' : $comment_author->language;
+		
+		if(isset($comment_author->field_name[$language])){
+			$comment_author_name = $comment_author->field_name[$language][0]['safe_value'];
+		} else $comment_author_name = $comment_author->name;
+				
 		$author_uname = $comment_author->name;
+
 		?>
 <div class="attribution">
     <?php print render($title_prefix); ?>
@@ -70,7 +78,7 @@
     <?php print render($title_suffix); ?>
     <div class="submitted">
 
-    	Posted by <?php print l($comment_author_name, 'users/'.$author_uname); ?> on <?php print format_date($comment->created, 'long'); //$created; ?>
+    	Posted by <?php print l($comment_author_name, 'user/'.$uid); ?> on <?php print format_date($comment->created, 'long'); //$created; ?>
     </div>
   </div>
 

@@ -6,9 +6,9 @@
  */
 (function($){ // Create local scope.
 
-Drupal.behaviors.fivestar = {
+Drupal.behaviors.stackoverflow_plus = {
   attach: function (context) {
-    $('div.fivestar-form-item').once('fivestar', function() {
+    $('div.fivestar-form-item').once('stackoverflow_plus', function() {
       var $this = $(this);
       var $container = $('<div class="fivestar-widget clearfix"></div>');
       var $select = $('select', $this);
@@ -19,6 +19,8 @@ Drupal.behaviors.fivestar = {
         $('<div class="cancel"><a href="#0" title="' + $cancel.text() + '">' + $cancel.text() + '</a></div>')
           .appendTo($container);
       }
+      
+
 
       // Setup the rating buttons
       var $options = $('option', $this).not('[value="-"], [value="0"]');
@@ -36,13 +38,17 @@ Drupal.behaviors.fivestar = {
         }
       });
 
-      $container.find('.star:lt(' + index + ')').addClass('on');
+	  // Catch the count and make it appear 
+      var $count = $('.currentCount', $this);
+      $("<h1>" + $count.text() + "</h1>").addClass('finalCount').insertAfter($container.find('.star-first'));
+
+      //$container.find('.star:lt(' + index + ')').addClass('on');
       $container.addClass('fivestar-widget-' + ($options.length));
       $container.find('a')
-        .bind('click', $this, Drupal.behaviors.fivestar.rate)
-        .bind('mouseover', $this, Drupal.behaviors.fivestar.hover);
+        .bind('click', $this, Drupal.behaviors.stackoverflow_plus.rate);
+       // .bind('mouseover', $this, Drupal.behaviors.stackoverflow_plus.hover);
 
-      $container.bind('mouseover mouseout', $this, Drupal.behaviors.fivestar.hover);
+      //$container.bind('mouseover mouseout', $this, Drupal.behaviors.stackoverflow_plus.hover);
 
       // Attach the new widget and hide the existing widget.
       $select.after($container).css('display', 'none');
@@ -53,12 +59,17 @@ Drupal.behaviors.fivestar = {
     var $widget = event.data;
     var value = this.hash.replace('#', '');
     $('select', $widget).val(value).change();
+    //alert($('select', $widget).val());
+    $('.finalCount').val($this.text());
     var $this_star = $this.closest('.star');
-    $this_star.prevAll('.star').andSelf().addClass('on');
-    $this_star.nextAll('.star').removeClass('on');
+    //$this_star.prevAll('.star').andSelf().addClass('on');
+    //$this_star.nextAll('.star').removeClass('on');
     event.preventDefault();
-  },
+  }/*,
   hover: function(event) {
+  	var $this = $(this);
+    $('.star', $this).toggleClass('hover');
+    /*
     var $this = $(this);
     var $widget = event.data;
     var $target = $(event.target);
@@ -76,7 +87,7 @@ Drupal.behaviors.fivestar = {
     } else {
       $stars.removeClass('hover');
     }
-  }
+  }*/
 };
 
 })(jQuery);

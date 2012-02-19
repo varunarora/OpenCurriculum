@@ -37,10 +37,39 @@ function stackoverflow_plus_permission() {
 function stackoverflow_plus_theme() {
   return array(
     // StackOverflow Plus theme functions.
+    /*
     'stackoverflow_plus' => array(
       'render element' => 'element',
       'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),*/
+    'stackoverflow_plus_select' => array(
+      'render element' => 'element',
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    )/*,
+    'stackoverflow_plus_static' => array(
+      'variables' => array('rating' => NULL, 'stars' => 5, 'tag' => 'vote', 'widget' => array('name' => 'default', 'css' => '')),
+      'file' => 'includes/stackoverflow_plus.theme.inc',
     ),
+    'stackoverflow_plus_static_element' => array(
+      'variables' => array('star_display' => NULL, 'title' => NULL, 'description' => NULL),
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    )/*,
+    'stackoverflow_plus_formatter_default' => array(
+      'render element' => 'element',
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),
+    'stackoverflow_plus_preview' => array(
+      'variables' => array('style' => NULL, 'text' => NULL, 'stars' => NULL, 'unvote' => NULL, 'title' => NULL),
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),
+    'stackoverflow_plus_preview_widget' => array(
+      'variables' => array('css' => NULL, 'name' => NULL),
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),
+    'stackoverflow_plus_preview_wrapper' => array(
+      'variables' => array('content' => NULL, 'type' => 'direct'),
+      'file' => 'includes/stackoverflow_plus.theme.inc',
+    ),*/
   );
 }
 
@@ -49,10 +78,13 @@ function _stackoverflow_plus_cast_vote($entity_type, $id, $value, $tag = NULL, $
   global $user;
   $tag = empty($tag) ? 'vote' : $tag;
   $uid = empty($uid) ? $user->uid : $uid;
+  
   // Bail out if the user's trying to vote on an invalid object.
   if (!$skip_validation && !stackoverflow_plus_validate_target($entity_type, $id, $tag, $uid)) {
     return array();
   }
+  
+  
   // Sanity-check the incoming values.
   if (is_numeric($id) && is_numeric($value)) {
     if ($value > 100) {
@@ -60,7 +92,7 @@ function _stackoverflow_plus_cast_vote($entity_type, $id, $value, $tag = NULL, $
     }
 
     // Get the user's current vote.
-    $criteria = array('entity_type' => $entity_type, 'entity_id' => $id, 'tag' => $tag, 'uid' => $uid);
+    $criteria = array('entity_type' => $entity_type, 'entity_id' => $id, 'tag' => $tag, 'uid' => $uid, 'value_type' => 'points');
     // Get the unique identifier for the user (IP Address if anonymous).
     $user_criteria = votingapi_current_user_identifier();
     $user_votes = votingapi_select_votes($criteria + $user_criteria);
@@ -74,7 +106,7 @@ function _stackoverflow_plus_cast_vote($entity_type, $id, $value, $tag = NULL, $
     }
 
     // Moving the calculationg after saving/deleting the vote but before getting the votes.
-    votingapi_recalculate_results($entity_type, $id);    
+    votingapi_recalculate_results($entity_type, $id);
     return stackoverflow_plus_get_votes($entity_type, $id, $tag, $uid);
   }
 }
@@ -111,7 +143,7 @@ function stackoverflow_plus_get_votes($entity_type, $id, $tag = 'vote', $uid = N
   $criteria = array(
     'entity_type' => $entity_type,
     'entity_id' => $id,
-    'value_type' => 'percent',
+    'value_type' => 'points',
     'tag' => $tag,
   );
 
@@ -119,15 +151,21 @@ function stackoverflow_plus_get_votes($entity_type, $id, $tag = 'vote', $uid = N
     'average' => array(),
     'count' => array(),
     'user' => array(),
+    'sum' => array(),
   );
 
   $results = votingapi_select_results($criteria);
+  
+
   foreach ($results as $result) {
     if ($result['function'] == 'average') {
       $votes['average'] = $result;
     }
     if ($result['function'] == 'count') {
       $votes['count'] = $result;
+    }
+    if ($result['function'] == 'sum') {
+      $votes['sum'] = $result;
     }
   }
   if ($uid) {
@@ -167,14 +205,56 @@ function stackoverflow_plus_validate_target($entity_type, $id, $tag, $uid = NULL
   if (!isset($uid)) {
     $uid = $GLOBALS['user']->uid;
   }
-
+  
   $access = module_invoke_all('stackoverflow_plus_access', $entity_type, $id, $tag, $uid);
+
   foreach ($access as $result) {
     if ($result == TRUE) {
       return TRUE;
     }
     if ($result === FALSE) {
       return FALSE;
+    }
+  }
+}
+
+
+/**
+ * Implementation of hook_stackoverflow_plus_access().
+ *
+ * This hook is called before every vote is cast through Fivestar. It allows
+ * modules to allow voting on any type of entity, such as nodes, users, or
+ * comments.
+ *
+ * @param $entity_type
+ *   Type entity.
+ * @param $id
+ *   Identifier within the type.
+ * @param $tag
+ *   The VotingAPI tag string.
+ * @param $uid
+ *   The user ID trying to cast the vote.
+ *
+ * @return boolean or NULL
+ *   Returns TRUE if voting is supported on this object.
+ *   Returns NULL if voting is not supported on this object by this module.
+ *   If needing to absolutely deny all voting on this object, regardless
+ *   of permissions defined in other modules, return FALSE. Note if all
+ *   modules return NULL, stating no preference, then access will be denied.
+ */
+function stackoverflow_plus_stackoverflow_plus_access($entity_type, $id, $tag, $uid) {
+  // Check to see if there is a field instance on this entity.
+  $fields = field_read_fields(array('module' => 'stackoverflow_plus'));
+  foreach($fields as $field) {
+    if ($field['settings']['axis'] == $tag) {
+      $params = array(
+        'entity_type' => $entity_type,
+        'field_name' => $field['field_name'],
+      );
+      $instance = field_read_instances($params);
+      if(!empty($instance)) {
+        return TRUE;
+      }
     }
   }
 }
@@ -214,7 +294,7 @@ function stackoverflow_plus_validate_target($entity_type, $id, $tag, $uid = NULL
 function stackoverflow_plus_custom_widget($form, &$form_state, $values, $settings) {
   $form = array(
     '#attributes' => array(
-      'class' => array('stackoverflow_plus-widget')
+      'class' => array('stackoverflow-plus-widget')
     ),
   );
   $form['#submit'][] = 'stackoverflow_plus_form_submit';
@@ -227,7 +307,7 @@ function stackoverflow_plus_custom_widget($form, &$form_state, $values, $setting
     '#auto_submit' => isset($settings['autosubmit']) ? $settings['autosubmit'] : TRUE,
     '#allow_clear' => $settings['allow_clear'],
     '#required' => isset($settings['required']) ? $settings['required'] : FALSE,
-    '#widget' => isset($settings['widget']) ? $settings['widget'] : array('name' => 'default', 'css' => 'default'),
+    '#widget' => isset($settings['widget']) ? $settings['widget'] : array('name' => 'plus', 'css' => 'plus'),
     '#values' => $values,
     '#settings' => $settings,
   );
@@ -262,14 +342,19 @@ function stackoverflow_plus_form_submit($form, &$form_state) {
  * AJAX submit handler for fivestar_custom_widget
  */
 function stackoverflow_plus_ajax_submit($form, $form_state) {
+
+  if ($form_state['values']['vote'] == 2) $form_state['values']['vote'] = -1;
+
   $votes = _stackoverflow_plus_cast_vote($form_state['settings']['content_type'], $form_state['settings']['content_id'], $form_state['values']['vote'], $form_state['settings']['tag']);
 
   $values = array();
   $values['user'] = isset($votes['user']['value']) ? $votes['user']['value'] : 0;
   $values['average'] = isset($votes['average']['value']) ? $votes['average']['value'] : 0;
   $values['count'] = isset($votes['count']['value']) ? $votes['count']['value'] : 0;
+  $values['sum'] = isset($votes['sum']['value']) ? $votes['sum']['value'] : 0;
 
   $form['vote']['#values'] = $values;
+
   // TODO: why does passing in NULL works, yet passing in the actual form-id doesn't work.
   drupal_process_form(NULL, $form, $form_state);
 
@@ -277,7 +362,7 @@ function stackoverflow_plus_ajax_submit($form, $form_state) {
     '#type' => 'ajax',
     '#commands' => array(
       array(
-        'command' => 'stackoverflow_plusUpdate',
+        'command' => 'stackoverflowPlusUpdate',
         'data' => drupal_render($form['vote']),
       ),
     ),
@@ -302,9 +387,10 @@ function stackoverflow_plus_element_info() {
       'user' => 0,
       'average' => 0,
       'count' => 0,
+      'sum' => 0,
     ),
     '#settings' => array(
-      'style' => 'user',
+      'style' => 'sum',
       'text' => 'none',
     ),
   );
@@ -325,6 +411,7 @@ function stackoverflow_plus_expand($element) {
   $values = $element['#values'];
   $class[] = 'clearfix';
 
+
   $options = array('-' => t('Select rating'));
   /*
   for ($i = 1; $i <= $element['#stars']; $i++) {
@@ -333,9 +420,9 @@ function stackoverflow_plus_expand($element) {
   }
    * 
    */
-
-  $options[1] = t('Plus 1');
-  $options[2] = t('Minus 1');  
+   
+  $options[1] = t('+1');
+  $options[2] = t('-1');  
   
   // Display clear button only if enabled.
   if ($element['#allow_clear'] == TRUE) {
@@ -350,13 +437,14 @@ function stackoverflow_plus_expand($element) {
     '#default_value' => _stackoverflow_plus_get_element_default_value($element),
   );
 
+  //$element['#count'] = $values['count'];
+  
   if (isset($element['#parents'])) {
     $element['vote']['#parents'] = $element['#parents'];
   }
   if (isset($element['#weight'])) {
     $element['vote']['#weight'] = $element['#weight'];
   }
-
 
   $class[] = 'fivestar-form-item';
 
@@ -392,7 +480,7 @@ function _stackoverflow_plus_get_element_default_value($element) {
     $default_value = $element['#default_value'];
   }
   else {
-    $default_value = $element['#values']['user'];
+    $default_value = $element['#values']['sum'];
   }
   
   return $default_value;

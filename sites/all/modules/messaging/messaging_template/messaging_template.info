@@ -1,0 +1,17 @@
+; $Id: messaging_template.info,v 1.1.4.2.2.1 2011/01/18 00:41:36 jareyero Exp $
+name = Messaging template
+description = Advanced templating system for messages. Do not enable this module unless other module requires it.
+package = Messaging
+version = VERSION
+core = 7.x
+dependencies[] = messaging
+files[] = messaging_template.inc
+
+
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha1"
+core = "7.x"
+project = "messaging"
+datestamp = "1295315244"
+

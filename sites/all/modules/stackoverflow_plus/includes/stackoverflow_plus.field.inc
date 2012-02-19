@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Provides CCK integration for fivestar module
+ * Provides CCK integration for stackoverflow_plus module
  */
 
 /**
@@ -108,7 +108,7 @@ function stackoverflow_plus_field_update($entity_type, $entity, $field, $instanc
  * Implementation of hook_field_delete().
  */
 function stackoverflow_plus_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  _fivestar_field_helper($entity_type, $entity, $field, $instance, $langcode, $items, 'delete');
+  _stackoverflow_field_helper($entity_type, $entity, $field, $instance, $langcode, $items, 'delete');
 }
 
 function _stackoverflow_plus_field_helper($entity_type, $entity, $field, $instance, $langcode, &$items, $op = '') {
@@ -228,7 +228,7 @@ function stackoverflow_plus_previews_expand($element) {
 }
 
  * /
- * 
+
 /**
  * Implementation of hook_field_widget_form().
  */
@@ -266,6 +266,7 @@ function stackoverflow_plus_field_widget_form(&$form, &$form_state, $field, $ins
       'user' => 0,
       'average' => 0,
       'count' => 0,
+      'sum' => 0,
     );
 
     $settings = array(
@@ -308,8 +309,8 @@ function stackoverflow_plus_field_formatter_info() {
         // setting. Let hook_field_formatter_view() handle
         // defaults for instances that aren't set to anything.
         'widget' => array('stackoverflow_plus_widget' => NULL),
-        'style' => 'average',
-        'text' => 'average',
+        'style' => 'sum',
+        'text' => 'sum',
         'expose' => TRUE,
       ),
     ),/*
@@ -447,8 +448,13 @@ function stackoverflow_plus_field_formatter_settings_summary($field, $instance, 
 function stackoverflow_plus_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   $settings = $display['settings'];
+
+	
+  // Lines with problems 	
+	
   $widgets = module_invoke_all('fivestar_widgets');
-  $widget = __stackoverflow_plus_get_widget($widgets, $display, $instance);
+  $widget = _stackoverflow_plus_get_widget($widgets, $display, $instance);
+
   $values = $items[0];
 
   // Determine if any set of stars to be displayed need to be
@@ -459,8 +465,8 @@ function stackoverflow_plus_field_formatter_view($entity_type, $entity, $field, 
   // - Fivestar widget selected is "Stars (rated while viewing)"
   // - Fivestar display setting = "exposed"
   $is_form = ($instance['widget']['type'] == 'exposed'
-              && user_access('rate content')
-              && $display['type'] == 'fivestar_formatter_default'
+              && user_access('plus content')
+              && $display['type'] == 'stackoverflow_plus_formatter_default'
               && $display['settings']['expose']) ? TRUE : FALSE;
   if ($is_form) {
     // TODO. Get rid of voting categories setting, then change this so
@@ -468,11 +474,12 @@ function stackoverflow_plus_field_formatter_view($entity_type, $entity, $field, 
     $tag = (isset($field['settings']['axis'])) ? $field['settings']['axis'] : 'vote';
     list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
     $settings = _fivestar_custom_widget_settings($entity_type, $instance, $display, $id, $tag, $widget);
-    $element[0] = drupal_get_form('fivestar_custom_widget', $values, $settings);
+    $element[0] = drupal_get_form('stackoverflow_plus_custom_widget', $values, $settings);
     // Our work here is done.
     return $element;
   }
 
+  /*
   // No stars will be displayed in a form. Build a renderable array.
   $element[0] = array(
     // Add a container div around this field with the clearfix class on it.
@@ -573,7 +580,7 @@ function stackoverflow_plus_field_formatter_view($entity_type, $entity, $field, 
     $element[0][$name]['#description'] = theme('fivestar_summary', $summary_options);
   }
 
-  return $element;
+  return $element;*/
 }
 
 /**
@@ -619,28 +626,9 @@ function _stackoverflow_plus_custom_widget_settings($entity_type, $instance, $di
  *  Array. $widget = array('name' => 'my widget', 'css' => 'sites/all/mymodule/mywidget.css');
  */
 function _stackoverflow_plus_get_widget($widgets, $display, $instance) {
-  // Stars (rated while viewing) is $type = 'exposed'.
-  // Stars (rated while editing) is $type = 'stars'.
-  $type = $instance['widget']['type'];
-
-  // Determine which widget to display.
-  if (!$fivestar_widget = $display['settings']['widget']['fivestar_widget']) {
-    // No display has been selected and saved by the user.
-    if ($type == 'exposed') {
-      // Stars rated while viewing, that is, $type = 'exposed', fall backs on 'default'
-      // (which is the same as nothing).
-      $fivestar_widget = 'default';
-    }
-    else if ($type == 'stars') {
-      // Stars rated while editing, that is, $type = stars,
-      // falls back on whatever the user selected to be displayed on node/add and node/%/edit
-      $fivestar_widget = $instance['widget']['settings']['widget']['fivestar_widget'];
-    }
-  }
-
   $widget = array(
-    'name' => isset($widgets[$fivestar_widget]) ? strtolower($widgets[$fivestar_widget]) : 'default',
-    'css' => $fivestar_widget,
+    'name' => 'default',
+    'css' => 'plus',
   );
 
   return $widget;
@@ -648,7 +636,7 @@ function _stackoverflow_plus_get_widget($widgets, $display, $instance) {
 
 /**
  * Implements hook_field_prepare_view()
- */ /*
+ */ 
 function stackoverflow_plus_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
   // TODO: Clean this function up!
   foreach ($entities as $id => $entity) {
@@ -657,10 +645,11 @@ function stackoverflow_plus_field_prepare_view($entity_type, $entities, $field, 
     if ($instances[$id]['widget']['type'] == 'exposed') {
       // If the widget type is exposed then we want to look up the voting api values.
       $tag = $field['settings']['axis'];
-      $votes = fivestar_get_votes($entity_type, $id, $tag);
+      $votes = stackoverflow_plus_get_votes($entity_type, $id, $tag);
       $values['user'] = isset($votes['user']['value']) ? $votes['user']['value'] : 0;
       $values['average'] = isset($votes['average']['value']) ? $votes['average']['value'] : 0;
       $values['count'] = isset($votes['count']['value']) ? $votes['count']['value'] : 0;
+	  $values['sum'] = isset($votes['sum']['value']) ? $votes['sum']['value'] : 0;
       $items[$id] = array($values);
     }
     else {
@@ -670,14 +659,15 @@ function stackoverflow_plus_field_prepare_view($entity_type, $entities, $field, 
         $values['count'] = 1;
         $values['user'] = $items[$id][0]['rating'];
         $values['average'] = $items[$id][0]['rating'];
+		$values['sum'] = $items[$id][0]['rating'];
       }
       else {
         $values['count'] = 0;
         $values['user'] = 0;
         $values['average'] = 0;
+		$values['sum'] = 0;
       }
       $items[$id] = array($values);
     }
   }
 }
-*/
