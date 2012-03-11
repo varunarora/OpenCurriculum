@@ -150,10 +150,22 @@ function _ratingx_add_user_points($entity_id, $num_points){
 	$sum = $current_sum['value'];
 	
 	$user = user_load($entity_id);
-	$edit = (array) $user;
-	$edit['field_points']['und'][0]['value'] = $sum;
-	user_save($user, $edit);
+
+/*
+	$edit = array(
+	  'field_points' => array(
+	  	'und' => array(
+		  0 => array(
+		  	'value' => $sum,
+		  )
+		)
+	  )
+	);
+*/
+
+	$user->field_points['und'][0]['value'] = $sum;
 	
+	field_attach_update('user', $user);
 	
 	// Putting it on the feed
 	_add_feed_item(1, 'The administrator was rewarded ' + $num_points + ' points');

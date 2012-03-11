@@ -1,0 +1,148 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_help().
+ */
+function mathjax_help($path, $arg) {
+  switch ($path) {
+    // Main module help for the mathjax module
+    case 'admin/settings/mathjax':
+      return t('MathJax allows you to include mathematics in your web pages, either using TeX and LaTeX notation, or as MathML, and you can even use both in the same document. Go to the !website for more information.', array('!website' => l(t('MathJax website'), 'http://www.mathjax.org/')));
+    
+    case 'admin/help#mathjax':
+      return '<p>' . t('MathJax allows you to include mathematics in your web pages, either using TeX and LaTeX notation, or as MathML, and you can even use both in the same document. Go to the !website for more information.', array('!website' => l(t('MathJax website'), 'http://www.mathjax.org/'))) . '</p>';
+  }
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function mathjax_init() {
+  global $base_path;
+
+  // Load Mathjax only on specified nodes
+  if (mathjax_active() && variable_get('mathjax_enabled', TRUE)) {
+    drupal_add_js(drupal_get_path('module', 'mathjax') . '/mathjax.js', 'file');
+  
+    // Pass variables to mathjax.js
+    $mathjax_path = variable_get('mathjax_use_cdn', TRUE) ? 'cdn' : $base_path . libraries_get_path('mathjax') . '/MathJax.js';
+    drupal_add_js(array(
+      'mathjax' => array(
+        'path' => $mathjax_path)), 'setting');
+   }
+}
+
+/**
+ * Verify that MathJax should be active for the current URL.
+ * (taken from Block module)
+ *
+ * @return
+ *   TRUE if MathJax should be active for the current page.
+ */
+function mathjax_active() {
+  $pages = variable_get('mathjax_pages', "admin*\nnode/add/*\nnode/*/edit");
+  $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+  // Compare the lowercase internal and lowercase path alias (if any).
+  $page_match = drupal_match_path($path, $pages);
+  if ($path != $_GET['q']) {
+    $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+  }  
+
+  if (variable_get('mathjax_active_type', 'disable') == 'disable') {
+    return !$page_match;
+  }
+  else {
+    return $page_match;
+  }
+}
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function mathjax_permission() {
+  return array(
+    'administer mathjax' => array(
+      'title' => t('Administer MathJax'),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function mathjax_menu() {
+  //$items = array();
+
+  $items['admin/config/content/mathjax'] = array(
+    'title' => 'MathJax',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mathjax_global_settings'),
+    'access arguments' => array('administer mathjax'),
+    'description' => 'Configure global settings for MathJax.',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+//   $items['admin/config/annotate'] = array( 
+//     'title' => 'Node annotation', 
+//     'description' => 'Adjust node annotation options.', 
+//     'position' => 'right', 
+//     'weight' => -5, 
+//     'page callback' => 'system_admin_menu_block_page', 
+//     'access arguments' => array('administer site configuration'), 
+//     'file' => 'system.admin.inc', 
+//     'file path' => drupal_get_path('module', 'system'), 
+//   ); 
+//    
+//   $items['admin/config/annotate/settings'] = array( 
+//     'title' => 'Annotation settings', 
+//     'description' => 'Change how annotations behave.', 
+//     'page callback' => 'drupal_get_form', 
+//     'page arguments' => array('annotate_admin_settings'), 
+//     'access arguments' => array('administer site configuration'), 
+//     'type' => MENU_NORMAL_ITEM, 
+//     'file' => 'annotate.admin.inc', 
+//   ); 
+
+  return $items;
+}
+
+/**
+ * Configure global settings for MathJax.
+ */
+function mathjax_global_settings() {
+  $form['mathjax']['mathjax_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Global switch'),
+    '#default_value' => variable_get('mathjax_enabled', TRUE),
+    '#description' => t('Check this box to enable MathJax for the entire site.'),
+  );
+  $form['mathjax']['mathjax_use_cdn'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use MathJax Content Delivery Network (CDN)'),
+    '#default_value' => variable_get('mathjax_use_cdn', TRUE),
+    '#description' => t('Check this box to load MathJax source from MathJax servers (recommended).'),
+  );
+  $form['mathjax']['active'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Page specific activation settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['mathjax']['active']['mathjax_active_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Enable MathJax on specific pages'),
+    '#options' => array('disable' => 'Enable on every page except the listed pages.', 'enable' => 'Enable on the listed pages only.'),
+    '#default_value' => variable_get('mathjax_active_type', 'disable'),
+  );
+  $form['mathjax']['active']['mathjax_pages'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Pages'),
+    '#default_value' => variable_get('mathjax_pages', "admin*\nnode/add/*\nnode/*/edit"),
+    '#description' => t("Enter one page per line as Drupal paths. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
+  );
+
+  return system_settings_form($form);
+}

@@ -5,7 +5,7 @@
   <?php endif; ?>
   
 <a href="<?php print $front_page; ?>forum" id="forums">Forums</a>
-<a href="#" id="subjectBrowse">Browse by subject <img src="<?php print $base_path.path_to_theme(); ?>/images/arrow_below.png" height="8px" width="15px" /></a>
+<a href="#" id="subjectBrowse">Subjects <img src="<?php print $base_path.path_to_theme(); ?>/images/arrow_below.png" height="8px" width="15px" /></a>
 <div id="subjectList">
 	&rsaquo; <?php print l("Mathematics", "mathematics"); ?><br/>
 	&rsaquo; <?php print l("Science", "science"); ?><br/>
@@ -16,7 +16,7 @@
 	&rsaquo; <?php print l("History", "history"); ?><br/>
 
 </div>
-<a href="<?php print $front_page; ?>licenses" id="license">Browse resouces by license</a>
+<a href="<?php print $front_page; ?>licenses" id="license">Resources by license</a>
 <!--<a href="<?php print $front_page; ?>faqs" id="faqs">FAQs</a>-->
 
 <div id="oers">

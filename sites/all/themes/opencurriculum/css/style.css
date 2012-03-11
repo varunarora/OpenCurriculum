@@ -47,18 +47,32 @@ padding-top: 30px;
 float: left;
 }
 
+
+
 a{
 text-decoration: none;
 color: #404040;
 }
 
-a:hover, li a:hover, span a:hover, div a:hover {
-text-decoration: underline;
-color: #404040;
+.node .content a{
+	color: #4C94E0; 
 }
 
-a:visited {
-color: #797979;
+#footer a{
+	color: #aaa; 
+}
+
+a:hover, li a:hover, span a:hover, div a:hover {
+text-decoration: underline;
+color: #12C; /*#404040;*/
+}
+
+.node .content a:visited {
+color: #DD3DF2;
+}
+
+.link-edit-summary, .filter-help a {
+	color: #4C94E0;	
 }
 
 h1, h2 {
@@ -529,14 +543,24 @@ textarea {
 }
 
 #points {
-	background-color: red;
+	background-color: #FE6;
+	background: -webkit-gradient(linear, left top, left bottom, from(#FE6), to(#ED5));
+	background: -moz-linear-gradient(top,  #FE6,  #ED5);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FE6', endColorstr='#ED5');
 	font-size: 0.8em;
 	padding: 2px;
-	-moz-border-radius: 2px 2px;
-	-webkit-border-radius: 2px 2px;
-	border-radius: 2px 2px;
-	padding-left: 4px;
-	padding-right: 4px;
+	-moz-border-radius: 10px 10px;
+	-webkit-border-radius: 1px 1px;
+	border-radius: 20px 20px;
+	padding-left: 3px;
+	padding-right: 3px;
+	margin: 0px 3px 0px 3px;
+	
+}
+
+#points a {
+	color: #555;
+	text-shadow: 1px 1px 1px #ddd;
 }
 
 #loginBox {
@@ -652,13 +676,15 @@ textarea {
 
 .classy-button, .classy-button:visited{
 	padding: 7px 20px;
-	/*background-color: blue;*/
+	background-color: blue;
 	background-image: -moz-linear-gradient(top, #0088CC 0%, #0044CC 100%);
 	background-image: -ms-linear-gradient(top, #0088CC 0%, #0044CC 100%);
 	background-image: -o-linear-gradient(top, #0088CC 0%, #0044CC 100%);
 	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #0088CC), color-stop(1, #0044CC));
 	background-image: -webkit-linear-gradient(top, #0088CC 0%, #0044CC 100%);
 	background-image: linear-gradient(top, #0088CC 0%, #0044CC 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0088CC', endColorstr='#0088CC');
+	filter: progid:DXImageTransform.Microsoft.gradient(enabled='true', startColorstr=#0088CCFF, endColorstr=#0088CC00);
 	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
@@ -700,3 +726,86 @@ tr.odd {
 ul.inline.hidden {
 	display: none;
 }
+
+#learning_objectives {
+	border: 1px solid;
+	margin: 6px 0;
+	padding: 10px 10px 10px 20px;
+	border-color: #1DB2ED;
+	color: #0B6E8C;
+	background-color: #F1FAFE;
+}
+
+#learning_objectives .field-items{
+	margin-left: 20px;
+	margin-top: 10px;
+}
+
+.field-name-field-tags .field-items {
+	padding-left: 20px;
+	background-image: url('../images/tag_red_16.png');
+	background-repeat: no-repeat;
+}
+
+.field-name-field-tags .field-items .field-item {
+	padding: 4px;
+	background-color: #eee;
+}
+
+.field-name-field-tags .field-items .field-item:hover { background-color: #ddd; }
+
+.qa { border: 1px solid #ddd; padding: 10px; margin-bottom: 6px; }
+.qa .answer {padding-left: 20px; display: none; padding-top: 5px;}
+.qa .question { padding-left: 20px; background: url('../images/arrow_right.png'); background-repeat: no-repeat; }
+.qa .question:hover { color: #007A08; cursor: pointer; }
+
+.qa .open-qa {
+	background-image: url('../images/arrow_below.png');
+	background-position: 0px 3px;
+}
+
+#hot-stuff {
+	overflow: auto;
+	border-bottom: 1px solid #ddd;
+}
+
+#block-node-recent {
+	margin-bottom: 30px;
+}
+
+/* Search results stuff */
+
+.search-results .search-snippet-info { padding-left: 0px; }
+.search-results .title { margin-bottom: 0px; }
+.search-results { padding-left: 0px; }
+.search-results .title a, .search-results .title a:visited, .search-results .title a:active { color: #006699; }
+.search-results .title a:hover { color: #0099FF; }
+.search-results .search-info, .search-results .search-info a { color: #009933; }
+
+
+/* Amin stuff */
+
+#notifications {
+	background-color: #F00;
+	background: -webkit-gradient(linear, left top, left bottom, from(#F00), to(#D00));
+	background: -moz-linear-gradient(top,  #F00,  #E00);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F00', endColorstr='#E00');
+	font-size: 0.8em;
+	padding: 2px;
+	-moz-border-radius: 2px 2px;
+	-webkit-border-radius: 2px 2px;
+	border-radius: 2px 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+	margin: 0px 3px 0px 3px;
+}
+
+.read{
+	background-color: #EEEEEE;
+}
+
+.unread{
+	background-color: #99FF66;
+}
+
+/* end Amin stuff */

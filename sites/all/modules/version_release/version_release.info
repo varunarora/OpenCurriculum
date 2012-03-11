@@ -1,0 +1,6 @@
+name = Version Release
+description = Allows releasing versions of textbooks on OpenCurriculum
+package = OC Custom
+core = 7.x
+dependencies[] = books
+

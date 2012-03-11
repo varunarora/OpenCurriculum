@@ -160,11 +160,11 @@
 <h1 id="home-title">Free &amp; high-quality K-12 textbooks. <br/><span class="slider-green">Created by you.</span></h1>
 <p/>
 <div id="project-info" style="overflow: auto">
-	<div id="project-brief">OpenCurriculum is a project aimed at creating the first global free K-12 school curriculum created by members of community like you.<p/>We are hope to build a listing of education resources associated with textbook chapters that are sorted, ranked and reviewed by you.<p/>All this, ready for print and mobile &amp; tablet devices!<p style="margin-top: 20px"/>
+	<div id="project-brief">OpenCurriculum is a project aimed at creating the first global free K-12 school curriculum created by members of community like you.<p/>We are hoping to build a listing of education resources associated with textbook chapters that are sorted, ranked and reviewed by you.<p/>All this, ready for print and mobile &amp; tablet devices!<p style="margin-top: 20px"/>
 
 		<a href="user/register" class="classy-button">Get started now &#187;</a> <a href="about" class="classy-button">Learn more &#187;</a>
 		</div>
-	<div id="project-image"><img src="<?php print path_to_theme();?>/images/oer_refl.png"></div>
+	<div id="project-image"><img src="<?php print path_to_theme();?>/images/oc_process.png"></div>
 </div>
 <!--http://cssglobe.com/post/5780/easy-slider-17-numeric-navigation-jquery-slider -->
 
@@ -182,14 +182,20 @@
 </div>
 -->
 
-<div id="hot"><h2>Hot topics &amp; chapters</h2><p/>
-      <?php print render($page['recent_content']); ?>
+<div id="hot-stuff">
+<div id="hot"><h3>Hot topics &amp; chapters</h3><p/>
+      <?php print render($page['recent_content']); ?><p/>
 </div>
 <div id="article-feed">
+	<h3>Current top goals</h3><p/>
+	<?php print render($page['hot_right']); ?>
+</div>
+</div>
+<p/>
 	  <h3 style="margin-top: 0px;">Posts from OC Blog</h3>
       <?php print render($page['content']); ?>
       </div>
-</div>
+
 
 </div>
 

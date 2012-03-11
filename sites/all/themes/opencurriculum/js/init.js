@@ -2,7 +2,7 @@ jQuery(function($){
 		$("#slider").easySlider({
 		auto: true,
 		continuous: true,
-		pause: 5000,
+		pause: 5000
 });
 
 	//$('#left-panel').hide("slide", { direction: "left" }, 1000);
@@ -10,7 +10,7 @@ jQuery(function($){
  $('.ttip').tooltip({
 	position: 'bottom center',
 	effect: 'fade',
-	opacity: 0.9,
+	opacity: 0.9
  });
 
 
@@ -33,10 +33,10 @@ jQuery(function($){
 	$("#usual1").tabs(); 
  
  	$('a[href^="mailto"]').live('click', function(){
-		var $email = jQuery(this).attr('href');
+		var email = $(this).attr('href');
 		// Ideal case below
-		var address = $email.replace(/\s*\(at\)\s*/, '@').replace(/\s*\(dot\)\s*/g, '.');
-		jQuery(this).attr('href', address);
+		var address = email.replace(/\s*\(at\)\s*/, '@').replace(/\s*\(dot\)\s*/g, '.');
+		$(this).attr('href', address);
 		return true;
 	});
  
@@ -52,6 +52,12 @@ jQuery(function($){
             auto_join_text_url: "we were checking out",
             loading_text: "loading tweets..."
         });
-    
+	
+	$('.question').click(function(){
+		$(this).next().animate({ opacity: 'toggle', height: 'toggle' }, "slow");
+		$(this).toggleClass('open-qa');
+	});
+
+
  	Shadowbox.init();
 });

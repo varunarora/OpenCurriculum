@@ -547,6 +547,7 @@ class Notifications_Event extends Notifications_Entity {
       // Check access to all objects related with this event
       if ($destination && ($user = $subscription->get_user()) && $this->user_access($user)) {
         $this->notif_sent++;
+        module_invoke_all('send_notification', $subscription);
         $message->add_destination($destination, $subscription->send_method);
         $results['sent'][] = $subscription->sid;
       }
@@ -556,7 +557,7 @@ class Notifications_Event extends Notifications_Entity {
       }
     }
     // This will send out all messages. It will be a bulk sending or not depending on send method
-    if (!empty($results['sent'])) {
+    if (!empty($results['sent'])){
       $message->send_all();
       $results['results'] = $message->get_results();
       $results['success'] = count(array_filter($results['results']));

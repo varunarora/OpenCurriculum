@@ -1,5 +1,4 @@
 <?php
-// $Id: messaging_simple.module,v 1.3.2.4.2.8.2.2.4.10.2.1 2011/01/18 00:41:37 jareyero Exp $
 /**
  * @file
  * Simple messaging using html page. Messaging method plug-in
@@ -103,10 +102,13 @@ function messaging_simple_user_overview($account) {
   $output = '';
   foreach (messaging_simple_get_messages(array('uid' => $account->uid)) as $message) {
     $message->sender_account = $message->sender ? user_load($message->sender) : NULL;
-    $rows[] = array(
-      l($message->subject, 'user/' . $account->uid . '/messages/' . $message->mgid),
-      !empty($message->sender_account) ? theme('username', $message->sender_account) : t('System'),
-      format_date($message->sent),
+    $rows[] = array( 'data' => array(
+    	l($message->subject, 'user/' . $account->uid . '/messages/' . $message->mgid),
+    	!empty($message->sender_account) ? theme('username', $message->sender_account) : t('System'),
+    	format_date($message->sent)),
+    	'class' => 
+    		($message->timeread==0) ? array('unread') : array('read'),
+    	'no_striping' => true
     );
   }
   if (!empty($rows)) {
@@ -124,22 +126,25 @@ function messaging_simple_user_overview($account) {
  * Display single message
  */
 function messaging_simple_view_form($form, &$form_state, $message) {
-  $form['message'] = array('#type' => 'value', '#value' => $message);
-  $form['subject'] = array(
-    '#type' => 'item',
-    '#title' => t('Subject'),
-    '#markup' => check_plain($message->subject),
-  );
-  $form['body'] = array(
-    '#type' => 'item',
-    '#title' => t('Content'),
-    '#markup' => check_markup($message->body),
-  );
-  $form['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-  );
-  $form['#redirect'] = 'user/' . $message->uid . '/messages';
+	if(gettype($message)=="object" && get_class($message)=="Messaging_Simple"){
+		$message->read();
+		$form['message'] = array('#type' => 'value', '#value' => $message);
+		$form['subject'] = array(
+			'#type' => 'item',
+			'#title' => t('Subject'),
+    		'#markup' => check_plain($message->subject),
+  		);
+  		$form['body'] = array(
+    		'#type' => 'item',
+    		'#title' => t('Content'),
+    		'#markup' => check_markup($message->body),
+  		);
+  		$form['delete'] = array(
+    		'#type' => 'submit',
+    		'#value' => t('Delete'),
+  		);
+  		$form['#redirect'] = 'user/' . $message->uid . '/messages';
+	}
 
   return $form;
 }

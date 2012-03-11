@@ -1,0 +1,57 @@
+<?php
+
+function version_release_schema() {
+  $schema['version_release'] = array(
+  	'description' => 'A listing of all book version releases in the system', 
+  	'fields' => array(
+		'id' => array(
+		  'description' => 'Counter/index for version',
+		  'type' => 'serial',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		),
+		'vno' => array(
+		  'description' => 'Version identifier',
+		  'type' => 'float',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		  'default' => 0,
+		),
+		'rid' => array(
+		  'description' => 'Release identifier',
+		  'type' => 'varchar',
+		  'length' => '32',
+		  'not null' => TRUE,
+		  'default' => '',
+		),
+		'trunk' => array(
+		  'description' => 'Parent root node for release tree',
+		  'type' => 'varchar',
+		  'length' => '16',
+		  'not null' => TRUE,
+		  'default' => '',
+		),
+		'tree' => array(
+		  'description' => 'Nodes of the tree in JSON',
+		  'type' => 'text',
+		  'size' => 'big',
+		  'length' => '65536',
+		  'not null' => TRUE,
+		  'default' => '',
+		),
+		'created' => array(
+		  'description' => 'UNIX timestamp of when the release was made',
+		  'type' => 'int',
+		  'not null' => TRUE,
+		  'default' => '0',
+		),
+  	),
+	'indexes' => array(
+		    'id' => array('id'),
+		    'version' => array('vno'),
+		),
+	'primary key' => array('id'),	
+  );
+  
+  return $schema;
+}

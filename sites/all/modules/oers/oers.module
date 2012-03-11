@@ -84,10 +84,10 @@ function oers_menu_alter(&$items) {
   $items['admin/workbench']['title callback'] = 'oers_workbench_title';
 
   // Redirect node/%node/revisions
-  $items['node/%node/revisions']['page callback'] = 'oers_diffs_overview';
-  $items['node/%node/revisions']['page arguments'] = array(1);
-  $items['node/%node/revisions']['access arguments'] = array(1);
-  $items['node/%node/revisions']['access callback'] = 'oers_access';
+  //$items['node/%node/revisions']['page callback'] = 'oers_diffs_overview';
+  //$items['node/%node/revisions']['page arguments'] = array(1);
+  //$items['node/%node/revisions']['access arguments'] = array(1);
+  //$items['node/%node/revisions']['access callback'] = 'oers_access';
 
 }
 
@@ -245,17 +245,24 @@ function oers_book_node_form_submit(&$form, &$form_state) {
   global $user;
   
   $messages = drupal_get_messages();
-  //Replace only the "status" message, other messages should remain.
-  foreach($messages as $type => $message) {
-    if($type != 'status') {
-      drupal_set_message($message, $type);
-    }
+	//Replace only the "status" message, other messages should remain.
+	foreach($messages as $type => $message) {
+	  if($type != 'status') {
+	    drupal_set_message($message, $type);
+	  }
+	}
+  
+  if ($form_state['build_info']['args'][0]->workbench_moderation_state_new != 'Published'){
+	   
+	drupal_set_message(t('Your book page edits have been submitted to the moderators for review, and shall be published if approved!'));
+	  
+	if (!$user->uid==0) $form_state['redirect'] = array('node/' . $form_state['node'] -> nid . '/revisions/' . /*(intval($form['vid']['#value'])+1)*/ workbench_moderation_node_current_load(node_load($form['nid']['#value']))->vid . '/view');
+	else $form_state['redirect'] = array('oers/login', array('query' => array('destination' => 'node/' . $form_state['node'] -> nid . '/current-revision')));	
+  
+  } else {
+  	drupal_set_message(t('You have successfully moderated this book page, and your changes should be reflected in the current version'));
   }
   
-  drupal_set_message(t('Your book page edits have been submitted to the moderators for review, and shall be published if approved!'));
-  
-  if (!$user->uid==0) $form_state['redirect'] = array('node/' . $form_state['node'] -> nid . '/revisions/' . /*(intval($form['vid']['#value'])+1)*/ workbench_moderation_node_current_load(node_load($form['nid']['#value']))->vid . '/view');
-  else $form_state['redirect'] = array('oers/login', array('query' => array('destination' => 'node/' . $form_state['node'] -> nid . '/current-revision')));
 }
 
 function oers_login_request($node){
@@ -442,7 +449,7 @@ function oers_node_revisions($form, $form_state, $node) {
     );
 
     $form['date'][$revision->vid] = array(
-      '#markup' => l(format_date($revision->timestamp, 'short'), "node/{$node->nid}/moderation/{$revision->vid}/view")
+      '#markup' => format_date($revision->timestamp, 'long')
     );
 	
 	// Revision operations.
@@ -475,7 +482,7 @@ function oers_node_revisions($form, $form_state, $node) {
 	);
 
 	 
-	$form['submit'] = array('#type' => 'submit', '#value' => t('Show diff')); 
+	$form['submit'] = array('#type' => 'submit', '#value' => t('Compare')); 
 	 
 	
 	 
@@ -633,7 +640,7 @@ function oers_node_revisions_submit($form, &$form_state) {
   // the ids are ordered so the old revision is always on the left
   $old_vid = min($form_state['values']['old'], $form_state['values']['new']);
   $new_vid = max($form_state['values']['old'], $form_state['values']['new']);
-  $form_state['redirect'] =  'node/'. $form_state['values']['nid'] .'/revisions/view/'. $old_vid .'/'. $new_vid;
+  $form_state['redirect'] =  'node/'. $form_state['values']['nid'] .'/revisions/view/'. $old_vid .'/'. $new_vid . '/';
 }
 
 function oers_node_prepare($node){

@@ -1,0 +1,241 @@
+<?php
+
+/**
+ * Implementation of hook_help().
+ */
+function version_release_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/structure/version_release':
+      $output = t('This page is used to configure create and view existing version release trees of books.');
+    break;
+  }
+  return $output;
+}
+
+/**
+ *  Implementation of hook_menu()
+ */
+function version_release_menu(){
+  $items = array();
+  $items["admin/structure/version_release/releases"] = array(
+    'title' => 'Version releases administration',
+    'description' => 'Create and view existing releases in system.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('version_release_admin_trees_form'),
+    'access arguments' => array('administer version releases'),
+  );
+  $items["admin/structure/version_release/releases/%release/view"] = array(
+    'title' => 'View version release',
+    'description' => 'View the version release node tree for a specific release',
+    'page callback' => 'version_release_view_tree',
+    'page arguments' => array(4),
+    'access arguments' => array('view version release tree'),
+  );
+  return $items;
+}
+
+/*
+ *  Implementation of hook_permission()
+ */
+function version_release_permission(){
+  $permission = array();
+  $permissions['administer version releases'] = array(
+    'title' => 'Create/delete version releases'
+  );
+  $permissions['view version release tree'] = array(
+    'title' => 'View a version\'s release tree'
+  );
+  return $permissions;
+}
+
+/*
+ *  Administration form for version releases
+ * 
+ *  This form allows administrators to view and delete existing form
+ *  listings from the database
+ * 
+ */
+function version_release_admin_trees_form($form, &$form_state){
+  $form['version_release'] = array(
+    '#tree' => TRUE,
+  );	
+  $releases = _version_release_get_releases();
+  foreach($releases as $release){
+    $form['version_release'][$release->id]['release'] = array(
+      '#type' => 'value',
+      '#value' => $release,
+    );	
+    $form['version_release'][$release->id]['label'] = array(
+      '#markup' => check_plain($release->vno . $release->rid),
+    );
+	$form['version_release'][$release->id]['date'] = array(
+      '#markup' => check_plain($release->created),
+    );
+	$form['version_release'][$release->id]['delete'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Delete'),
+      '#title_display' => 'invisible',
+      '#default_value' => FALSE,
+    );
+  }
+  
+  $ridList = _version_release_get_rid_list();
+  
+  // Get all the books
+  $books = book_get_books();
+  
+  $book_list_builder = array();
+  
+  // Get all the table of contents for all books in the system
+  foreach ($books as $bid => $book){
+  	$book_list_builder[] = book_toc($bid, MENU_MAX_DEPTH);
+  }
+  
+  // Provide fields to create a version release.
+  $new_state['vno'] = array(
+    '#type' => 'textfield',
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#title' => t('Version release no.'),
+    '#description' => t('Enter the version release number')
+  );
+  $new_state['rid'] = array(
+    '#type' => 'select',
+    '#title' => t('Release identifier'),
+    '#options' => $ridList,
+    '#default_value' => $ridList[''],
+    '#description' => t('Select a release identifier from the list')
+  );
+  $new_state['trunk'] = array(
+    '#type' => 'select',
+    '#title' => t('Parent/trunk node'),
+    '#options' => $book_list_builder,
+    /*'#default_value' => $ridList[''],*/
+    '#description' => t('The parent/trunk book page for creating a release')
+  );
+
+  $form['version_release'][] = $new_state;
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+  
+  
+}
+
+/*
+ *  Theme for version_release_admin_trees_form()
+ */
+function theme_version_release_admin_trees_form($variables){
+  $form = $variables['form'];
+
+  drupal_add_tabledrag('version-releases', 'order', 'sibling', 'version-release-weight');
+
+  $header = array(
+    t('Version'),
+    t('Release'),
+    t('Date'),
+    array('data' => t('Delete'), 'class' => array('checkbox')),
+  );
+  
+  $rows = array();
+  foreach (element_children($form['version_release']) as $key) {
+    $element = &$form['version_release'][$key];
+
+    $row = array(
+      'data' => array(),
+      'class' => array('draggable'),
+    );
+    $row['data']['label'] = drupal_render($element['label']);
+    $row['data']['delete'] = drupal_render($element['delete']);
+
+    $rows[] = $row;
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'version-releases')));
+  $output .= drupal_render_children($form);
+
+  return $output;
+}
+
+/*
+ *  Validation function for version_release_admin_trees_form()
+ */ 
+function version_release_admin_trees_form_validate($form, &$form_state){
+  if (!is_float($form_state['values']['vno'])) {
+    form_set_error('', t('You must your version number as a float/double.'));
+  }
+}
+ 
+/*
+ *  Helper function to returns an array of existing releases in the database 
+ */
+function _version_release_get_releases(){
+  static $releases;
+  if (!isset($releases)) {
+    $releases = db_select('version_release', 'versions')
+      ->fields('versions', array('id', 'vno', 'rid', 'created'))
+      ->orderBy('versions.id', 'DESC')
+      ->execute()
+      ->fetchAllAssoc('id');
+  }
+  return $releases;
+}
+
+/*
+ *  Form submit handler for Version releases admin form
+ */
+function version_release_admin_trees_form_submit($form, &$form_state){
+  foreach ($form_state['values']['version_release'] as $key => $info) {
+    if (!empty($info['delete'])) {
+      version_release_delete($info['release']);
+      drupal_set_message(t('%release has been deleted.', array('%release' => $key)));
+    }
+    elseif (!empty($info['vno'])) {
+      
+	  $tree = book_toc($info['trunk'], MENU_MAX_DEPTH);	
+		
+      $release = (object) array(
+        'vno' => $info['vno'],
+        'rid' => $info['rid'],
+        'trunk' => $info['trunk'],
+        'tree' => $tree,
+        'created' => REQUEST_TIME,
+      );
+      version_release_save($release);
+    }
+  }
+
+  drupal_set_message(t('Your changes have been saved.'));
+
+}
+
+/*
+ *  Deleting a version release 
+ */
+function version_release_delete($release){
+  db_delete('version_release')
+  ->condition('id', $release->id)
+  ->execute();
+}
+
+/*
+ *  Create a new version release
+ */
+function version_release_save($release){
+  return db_merge('version_release')
+  ->key(array('id' => $release->id))
+  ->fields((array) $release)
+  ->execute();
+}
+
+/*
+ *  Helper function to 
+ */
+function _version_release_get_rid_list(){
+	return array('alpha' => 'Alpha', 'beta' => 'Beta', 'RC1' => 'Release Candidate 1', 'RC2' => 'Release Candidate 2', '' => '');
+}

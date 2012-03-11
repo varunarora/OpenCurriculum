@@ -5,13 +5,14 @@
 		<ul>
 			<li><?php print l("About us", 'about'); ?></li>
 			<li><?php print l("How it works", 'how-it-works'); ?></li>
-			<li><?php print l("Goals", 'goals'); ?></li>
-			<li><?php print l("Principles", 'core-principles'); ?></li>
-			<li><?php print l("History", 'history'); ?></li>
-			<li><?php print l("Team", 'team'); ?></li>
-			<li><?php print l("Technology Roadmap", 'roadmap/technology'); ?></li>
-			<li><?php print l("Education Roadmap", 'roadmap/education'); ?></li>
-			<li><?php print l("Collaboration Roadmap", 'roadmap/collaborations'); ?></li>
+			<li><?php print l("Goals", 'about/goals'); ?></li>
+			<li><?php print l("Principles", 'about/core-principles'); ?></li>
+			<li><?php print l("History", 'about/history'); ?></li>
+			<li><?php print l("Team", 'about/team'); ?></li>
+			<li><?php print l("Technology Roadmap", 'about/roadmap/technology'); ?></li>
+			<li><?php print l("Education Roadmap", 'about/roadmap/education'); ?></li>
+			<li><?php print l("Collaboration Roadmap", 'about/roadmap/collaborations'); ?></li>
+			<li><?php print l("Terms & Conditions", 'terms-conditions'); ?></li>
 		</ul>
 	</div>
 	
@@ -71,7 +72,7 @@
 	</div>
 	
 	<div id="footer-contact">
-		<strong>Contact</strong>
+		<strong>Get in touch</strong>
 		<ul>
 			<li><?php print l("Contact us", 'contact'); ?></li>
 			<li><a href="http://www.twitter.com/opencurriculum" target="_blank">Follow us on Twitter</a></li>

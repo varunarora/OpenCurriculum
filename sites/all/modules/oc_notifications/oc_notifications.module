@@ -1,0 +1,20 @@
+<?php
+
+
+function oc_notifications_send_notification($sub){
+	
+	$user = user_load($sub->uid);
+	$notification_count = $user->field_notifications['und'][0]['value'];
+	$notification_count++;
+	$user->field_notifications['und'][0]['value'] = $notification_count;
+	field_attach_update('user', $user);
+}
+
+function oc_notification_check_notifications($sub){
+	
+}
+
+function oc_notifications_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+	dsm($form);	
+	$form['field_notifications']['#type'] = 'hidden';
+}

@@ -2,8 +2,13 @@
 <div id="loggedOut">
 <?php if ($logged_in){
 	$account = user_load($user->uid);
-	if (isset($account->field_name['und']))
-	print l($account->field_name['und'][0]['safe_value'], 'user') . /*l('(edit)', 'user/'.$user->uid.'/edit') .*/ '<span id="points">'. $account->field_points['und'][0]['value'] . '</span> ';
+		if (isset($account->field_name['und'])){
+		print l($account->field_name['und'][0]['safe_value'], 'user'); /*l('(edit)', 'user/'.$user->uid.'/edit') .*/
+		print '<span id="points">'.  l($account->field_points['und'][0]['value'], 'user/'.$user->uid) . '</span>';
+		if($account->field_notifications['und'][0]['value'] > 0){
+			print '<span id="notifications">' . l($account->field_notifications['und'][0]['value'], 'user/'.$user->uid.'/messages') . '</span>';
+		}
+	}
 	else print l("My profile", 'user') . l('(edit)', 'user/'.$user->uid.'/edit');
 ?>
 &#183; <?php print l('My Content', 'admin/workbench'); ?>

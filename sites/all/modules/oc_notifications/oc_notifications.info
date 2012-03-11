@@ -1,0 +1,10 @@
+;$Id$
+
+name = OC Notification Integration
+description = Integrating the Drupal Notification module to the User object
+package = Open Curriculum Custom
+core = 7.x
+
+files[] = oc_notification.module
+
+

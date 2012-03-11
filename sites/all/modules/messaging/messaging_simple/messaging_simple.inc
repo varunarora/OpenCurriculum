@@ -1,5 +1,4 @@
 <?php
-// $Id: messaging_simple.inc,v 1.1.2.1 2011/01/18 00:41:37 jareyero Exp $
 /**
  * @file
  * Drupal Messaging Framework - Send_Method class file
@@ -52,11 +51,19 @@ class Messaging_Simple extends Messaging_Object {
    * Mark when read
    */
   public function read() {
-    $this->timeread = time();
-    db_update('messaging_simple')
-      ->fields(array('timeread' => $this->timeread))
-      ->condition('mgid', $this->mgid)
-      ->execute();
+  	if($this->timeread==0){
+  		$this->timeread = time();
+  		db_update('messaging_simple')
+			->fields(array('timeread' => $this->timeread))
+			->condition('mgid', $this->mgid)
+			->execute();
+		$user = user_load($this->uid);
+		$notification_count = $user->field_notifications['und'][0]['value'];
+		$notification_count--;
+		$user->field_notifications['und'][0]['value'] = $notification_count;
+	field_attach_update('user', $user);
+  	}
+    
     return $this->timeread;
   }
   /**

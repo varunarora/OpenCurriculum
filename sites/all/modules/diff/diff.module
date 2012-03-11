@@ -44,6 +44,7 @@ function diff_menu() {
    * Breadcrumbs work decently, at least the node link is among the crumbs. For some reason
    * any breadcrumbs "before/above" the node is only seen at 'node/%node/revisions/%/view'.
    */
+  
   $items['node/%node/revisions/list'] = array(
     // Not used directly, but was created to get the other menu items to work well
     'title' => 'List revisions',
@@ -81,9 +82,9 @@ function diff_menu() {
  */
 function diff_menu_alter(&$callbacks) {
   // Overwrite the default 'Revisions' page
-  $callbacks['node/%node/revisions']['page callback'] = 'diff_diffs_overview';
-  $callbacks['node/%node/revisions']['module'] = 'diff';
-  $callbacks['node/%node/revisions']['file'] = 'diff.pages.inc';
+  //$callbacks['node/%node/revisions']['page callback'] = 'diff_diffs_overview';
+  //$callbacks['node/%node/revisions']['module'] = 'diff';
+  //$callbacks['node/%node/revisions']['file'] = 'diff.pages.inc';
 
   $callbacks['node/%node/revisions/%/view']['tab_parent'] = 'node/%/revisions/list';
   $callbacks['node/%node/revisions/%/revert']['tab_parent'] = 'node/%/revisions/%/view';
@@ -100,7 +101,7 @@ function diff_menu_alter(&$callbacks) {
  * Access callback for the node revisions page.
  */
 function diff_node_revision_access($node, $op = 'view') {
-  $may_revision_this_type = variable_get('enable_revisions_page_'. $node->type, TRUE) || user_access('administer nodes');
+  $may_revision_this_type = variable_get('enable_revisions_page_'. $node->type, TRUE) || user_access('view revisions');
   return $may_revision_this_type && _node_revision_access($node, $op);
 }
 

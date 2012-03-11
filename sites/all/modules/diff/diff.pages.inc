@@ -164,16 +164,21 @@ function diff_diffs_show($node, $old_vid, $new_vid) {
   $old_node = node_load($node->nid, $old_vid);
   $new_node = node_load($node->nid, $new_vid);
 
+  dsm($new_vid);
+
   // Generate table header (date, username, logmessage).
   $old_header = t('!date by !username', array(
     '!date' => l(format_date($old_node->revision_timestamp), "node/$node->nid/revisions/$old_node->vid/view"),
     '!username' => theme('username', array('name' => $node_revisions[$old_vid])),
   ));
+
+  
+  
   $new_header = t('!date by !username', array(
     '!date' => l(format_date($new_node->revision_timestamp), "node/$node->nid/revisions/$new_node->vid/view"),
     '!username' => theme('username', array('name' => $node_revisions[$new_vid])),
   ));
-
+  
   $old_log = $old_node->log != '' ? '<p class="revision-log">'. filter_xss($old_node->log) .'</p>' : '';
   $new_log = $new_node->log != '' ? '<p class="revision-log">'. filter_xss($new_node->log) .'</p>' : '';
 
@@ -192,6 +197,7 @@ function diff_diffs_show($node, $old_vid, $new_vid) {
   else {
     $prev_link = '';
   }
+
 
   $cols = _diff_default_cols();
   $header = _diff_default_header($old_header, $new_header);
@@ -220,8 +226,11 @@ function diff_diffs_show($node, $old_vid, $new_vid) {
       'colspan' => 2
     )
   );
+  
+  
   $rows = array_merge($rows, _diff_body_rows($old_node, $new_node));
   $output = theme('diff_table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('diff')), 'cols' => $cols));
+ 
 
   if ($node->vid == $new_vid) {
     $output .= '<div class="diff-section-title">'. t('Current revision:') .'</div>';
@@ -229,8 +238,11 @@ function diff_diffs_show($node, $old_vid, $new_vid) {
   else {
     $output .= '<div class="diff-section-title">'. t('Revision of !new_date:', array('!new_date' => format_date($new_node->revision_timestamp))) .'</div>';
   }
+  
   // Don't include node links (final argument) when viewing the diff.
-  $output .= drupal_render(node_view($new_node, 'full'));
+  $view = node_view($new_node, 'full');
+  $output .= drupal_render($view);
+
   return $output;
 }
 
@@ -246,12 +258,13 @@ function diff_diffs_show($node, $old_vid, $new_vid) {
 function _diff_body_rows($old_node, $new_node) {
   drupal_add_css(drupal_get_path('module', 'diff') .'/diff.css', 'module', 'all', FALSE);
   module_load_include('inc', 'diff', 'includes/node');
-
+  
   $rows = array();
   $any_visible_change = FALSE;
   // @todo quick workaround for PHP >= 5.3.0 date_diff() conflict.
-  $node_diffs = _diff_module_invoke_all($old_node, $new_node);
 
+  $node_diffs = _diff_module_invoke_all($old_node, $new_node);
+	
   // We start off assuming all form elements are in the correct order.
   $node_diffs['#sorted'] = TRUE;
 
